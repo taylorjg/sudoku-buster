@@ -1,0 +1,40 @@
+.container {
+  margin-top: 20px;
+}
+
+.version {
+  font-size: small;
+  font-style: italic;
+}
+
+.grid-wrapper {
+  margin-bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.grid {
+  background-color: aliceblue;
+  width: 50%;
+}
+
+.grid-line {
+  stroke: #888;
+}
+
+.initial-value {
+  fill: magenta;
+  font-size: 32px;
+}
+
+.calculated-value {
+  fill: black;
+  font-size: 32px;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    width: 100%;
+  }
+}
