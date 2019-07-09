@@ -16,7 +16,8 @@
 
 .grid {
   background-color: aliceblue;
-  width: 50%;
+  width: 450px;
+  height: 450px;
 }
 
 .grid-line {
@@ -35,6 +36,7 @@
 
 @media (max-width: 768px) {
   .grid {
-    width: 100%;
+    width: 280px;
+    height: 280px;
   }
 }
