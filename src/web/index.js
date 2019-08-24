@@ -3,10 +3,10 @@ import { HARD_PUZZLE } from '../logic/sample-puzzles'
 import { drawInitialGrid, drawSolution } from './svg'
 
 const onOpenCVLoaded = () => {
-  const splashScreenElement = document.querySelector('.splash-screen')
-  const containerElement = document.querySelector('.container')
-  splashScreenElement.style.display = 'none'
-  containerElement.style.display = 'block'
+  const splashContentElement = document.querySelector('.splash-content')
+  const mainContentElement = document.querySelector('.main-content')
+  splashContentElement.style.display = 'none'
+  mainContentElement.style.display = 'block'
   const puzzle = HARD_PUZZLE
   const initialValues = getInitialValues(puzzle)
   drawInitialGrid(initialValues)

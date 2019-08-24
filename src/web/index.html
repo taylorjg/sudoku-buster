@@ -14,26 +14,26 @@
 </head>
 
 <body>
-  <div class="splash-screen">
-    <div class="loading">
+  <div>
+    <div class="container">
+      <div cass="row">
+        <div class="version pull-right">(version: <%= htmlWebpackPlugin.options.version %>)</div>
+      </div>
+      <div cass="row">
+        <hr />
+      </div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="splash-content">
       <div>Loading...</div>
-      <div class="progress" style="width: 400px;">
+      <div class="progress">
         <div class="progress-bar indeterminate">
         </div>
       </div>
     </div>
-  </div>
-  <div class="cloak container">
-    <div cass="row">
-      <div class="version pull-right">(version: <%= htmlWebpackPlugin.options.version %>)</div>
-    </div>
-    <div cass="row">
-      <hr />
-    </div>
-    <div cass="row">
-      <div class="grid-wrapper">
-        <svg id="grid" class="grid"></svg>
-      </div>
+    <div class="cloak main-content">
+      <svg id="grid" class="grid"></svg>
     </div>
   </div>
 </body>

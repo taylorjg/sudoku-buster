@@ -1,22 +1,38 @@
-.splash-screen {
+body {
   margin: 0;
   padding: 0;
   width: 100vw;
   height: 100vh;
   display: flex;
+  flex-direction: column;
+}
+
+.container {
+  margin-top: 20px;
+}
+
+.content {
+  flex-grow: 1;
+  margin: 0;
+  padding: 0;
+  display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.loading {
-  width: 90vw;
+.splash-content {
   display: flex;
+  width: 90vw;
 }
 
 @media (min-width: 768px) {
-  .loading {
+  .splash-content {
     width: 25%;
   }
+}
+
+.main-content {
+  align-self: flex-start;
 }
 
 .progress {
@@ -34,17 +50,12 @@
    to { left: 100%; width: 25%;}
 }
 
-.container {
-  margin-top: 20px;
-}
-
 .version {
   font-size: small;
   font-style: italic;
 }
 
 .grid-wrapper {
-  margin-bottom: 20px;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -52,8 +63,8 @@
 
 .grid {
   background-color: aliceblue;
-  width: 80vw;
-  height: 80vw;
+  width: 80vmin;
+  height: 80vmin;
 }
 
 .grid-line {
@@ -62,12 +73,12 @@
 
 .initial-value {
   fill: magenta;
-  font-size: 16px;
+  font-size: 2rem;
 }
 
 .calculated-value {
   fill: black;
-  font-size: 16px;
+  font-size: 2rem;
 }
 
 @media (min-width: 768px) {
@@ -76,9 +87,9 @@
     height: 400px;
   }
   .initial-value {
-    font-size: 32px;
+    font-size: 3rem;
   }
   .calculated-value {
-    font-size: 32px;
+    font-size: 3rem;
   }
 }
