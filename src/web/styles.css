@@ -2,11 +2,8 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  min-height: stretch;
-  min-height: fill-available;
   min-height: -webkit-fill-available;
   min-height: -moz-fill-available;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -87,4 +84,8 @@ body {
   :root {
     --grid-size: 400px;
   }
+}
+
+#video {
+  border: 1px solid darkblue;
 }
