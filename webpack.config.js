@@ -8,7 +8,7 @@ const { version } = require('./package.json')
 const distFolder = path.join(__dirname, 'dist')
 
 module.exports = {
-  mode: 'production',
+  mode: process.env.NODE_ENV || 'development',
   entry: './src/web/index.js',
   output: {
     path: distFolder,
@@ -17,7 +17,8 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin([
       { context: './src/web', from: '*.html' },
-      { context: './src/web', from: '*.css' }
+      { context: './src/web', from: '*.css' },
+      { context: './src/web', from: 'opencv_4.1.1.js' }
     ]),
     new HtmlWebpackPlugin({
       template: './src/web/index.html',

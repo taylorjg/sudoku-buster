@@ -1,3 +1,39 @@
+.splash-screen {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading {
+  width: 90vw;
+  display: flex;
+}
+
+@media (min-width: 768px) {
+  .loading {
+    width: 25%;
+  }
+}
+
+.progress {
+  flex-grow: 1;
+  margin-left: 1rem;
+}
+
+.progress-bar.indeterminate {
+  position: relative;
+  animation: progress-indeterminate 2s linear infinite;
+}
+
+@keyframes progress-indeterminate {
+   from { left: -25%; width: 25%; }
+   to { left: 100%; width: 25%;}
+}
+
 .container {
   margin-top: 20px;
 }
@@ -16,8 +52,8 @@
 
 .grid {
   background-color: aliceblue;
-  width: 450px;
-  height: 450px;
+  width: 80vw;
+  height: 80vw;
 }
 
 .grid-line {
@@ -26,17 +62,23 @@
 
 .initial-value {
   fill: magenta;
-  font-size: 32px;
+  font-size: 16px;
 }
 
 .calculated-value {
   fill: black;
-  font-size: 32px;
+  font-size: 16px;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 768px) {
   .grid {
-    width: 280px;
-    height: 280px;
+    width: 400px;
+    height: 400px;
+  }
+  .initial-value {
+    font-size: 32px;
+  }
+  .calculated-value {
+    font-size: 32px;
   }
 }
