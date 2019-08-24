@@ -22,7 +22,7 @@ const drawHorizontalGridLines = gridElement => {
       y1: TY + y * squareSize,
       x2: width,
       y2: TY + y * squareSize,
-      'class': 'grid-line',
+      'class': 'sudoku__grid-line',
       'stroke-width': y % 3 == 0 ? GRID_LINE_THICK_WIDTH : GRID_LINE_THIN_WIDTH
     })
     gridElement.appendChild(gridLine)
@@ -39,7 +39,7 @@ const drawVerticalGridLines = gridElement => {
       y1: 0,
       x2: TX + x * squareSize,
       y2: height,
-      'class': 'grid-line',
+      'class': 'sudoku__grid-line',
       'stroke-width': x % 3 == 0 ? GRID_LINE_THICK_WIDTH : GRID_LINE_THIN_WIDTH
     })
     gridElement.appendChild(gridLine)
@@ -54,9 +54,9 @@ const drawValue = (gridElement, row) => {
   const textElement = createSvgElement('text', {
     x: TX + (row.coords.col + 0.5) * squareWidth,
     y: TY + (row.coords.row + 0.5) * squareHeight,
-    'dominant-baseline': 'central',
-    'text-anchor': 'middle',
-    'class': row.isInitialValue ? 'initial-value' : 'calculated-value',
+    'class': row.isInitialValue
+      ? 'sudoku__digit sudoku__digit--initial'
+      : 'sudoku__digit sudoku__digit--calculated',
     'data-coords': `${row.coords.col}-${row.coords.row}`,
     'data-is-initial-value': row.isInitialValue
   })
@@ -81,13 +81,13 @@ const drawCalculatedValues = (gridElement, rows) => {
 }
 
 export const drawInitialGrid = initialValues => {
-  const gridElement = document.getElementById('grid')
+  const gridElement = document.getElementById('sudoku')
   drawHorizontalGridLines(gridElement)
   drawVerticalGridLines(gridElement)
   drawInitialValues(gridElement, initialValues)
 }
 
 export const drawSolution = solution => {
-  const gridElement = document.getElementById('grid')
+  const gridElement = document.getElementById('sudoku')
   drawCalculatedValues(gridElement, solution)
 }

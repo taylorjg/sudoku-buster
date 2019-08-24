@@ -53,41 +53,38 @@ body {
   font-style: italic;
 }
 
-.grid-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+:root {
+  --grid-size: 80vmin;
+  --max-grid-size: 80vmin;
 }
 
-.grid {
-  background-color: aliceblue;
-  width: 80vmin;
-  height: 80vmin;
+.grid-dimensions {
+  width: var(--grid-size);
+  height: var(--grid-size);
+  max-width: var(--max-grid-size);
+  max-height: var(--max-grid-size);
 }
 
-.grid-line {
+.sudoku__grid-line {
   stroke: #888;
 }
 
-.initial-value {
-  fill: magenta;
-  font-size: 2rem;
+.sudoku__digit {
+  font-size: calc(var(--grid-size) / 14);
+  dominant-baseline: central;
+  text-anchor: middle;
 }
 
-.calculated-value {
+.sudoku__digit--initial {
+  fill: magenta;
+}
+
+.sudoku__digit--calculated {
   fill: black;
-  font-size: 2rem;
 }
 
 @media (min-width: 768px) {
-  .grid {
-    width: 400px;
-    height: 400px;
-  }
-  .initial-value {
-    font-size: 3rem;
-  }
-  .calculated-value {
-    font-size: 3rem;
+  :root {
+    --grid-size: 400px;
   }
 }
