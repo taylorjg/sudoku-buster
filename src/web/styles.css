@@ -13,8 +13,6 @@ body {
 
 .content {
   flex-grow: 1;
-  margin: 0;
-  padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -29,10 +27,6 @@ body {
   .splash-content {
     width: 25%;
   }
-}
-
-.main-content {
-  align-self: flex-start;
 }
 
 .progress {
