@@ -9,20 +9,20 @@ const distFolder = path.join(__dirname, 'dist')
 
 module.exports = {
   mode: process.env.NODE_ENV || 'development',
-  entry: './src/web/index.js',
+  entry: './src/index.js',
   output: {
     path: distFolder,
     filename: 'bundle.js'
   },
   plugins: [
     new CopyWebpackPlugin([
-      { context: './src/web', from: '*.html' },
-      { context: './src/web', from: '*.css' },
-      { context: './src/web', from: 'opencv_4.1.1.js' },
+      { context: './src', from: '*.html' },
+      { context: './src', from: '*.css' },
+      { context: './src', from: 'opencv_4.1.1.js' },
       { from: './models', to: 'models/' }
     ]),
     new HtmlWebpackPlugin({
-      template: './src/web/index.html',
+      template: './src/index.html',
       version
     })
   ],

@@ -70,7 +70,7 @@ const scanSudokuFromImage = async imageData => {
     }
     const [, , bbw, bbh] = boundingBox
     if (bbw < C.GRID_IMAGE_WIDTH / 2 || bbh < C.GRID_IMAGE_HEIGHT / 2) {
-      throw new Error(`Bounding box is too small (${JSON.stringify(boundingBox)}).`)
+      throw new Error(`Bounding box is too small, ${JSON.stringify(boundingBox)}.`)
     }
     const gridSquareImageTensors = D.cropGridSquaresFromUnknownGrid(
       gridImageTensor,
@@ -167,7 +167,7 @@ const loadOpenCV = () => {
 }
 
 const main = () => {
-  log.setLevel('info')
+  log.setLevel('error')
   loadOpenCV()
 }
 
