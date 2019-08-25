@@ -5,6 +5,12 @@ const GRID_LINE_THICK_WIDTH = GRID_LINE_THIN_WIDTH * 4
 const TX = GRID_LINE_THICK_WIDTH / 2
 const TY = GRID_LINE_THICK_WIDTH / 2
 
+const deleteChildren = element => {
+  while (element.firstChild) {
+    element.removeChild(element.firstChild)
+  }
+}
+
 const createSvgElement = (elementName, additionalAttributes = {}) => {
   const element = document.createElementNS('http://www.w3.org/2000/svg', elementName)
   Object.entries(additionalAttributes).forEach(([name, value]) =>
@@ -81,6 +87,7 @@ const drawCalculatedValues = (svgElement, rows) => {
 }
 
 export const drawInitialGrid = (svgElement, initialValues) => {
+  deleteChildren(svgElement)
   drawHorizontalGridLines(svgElement)
   drawVerticalGridLines(svgElement)
   drawInitialValues(svgElement, initialValues)
