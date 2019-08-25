@@ -42,6 +42,12 @@
     </div>
     <div class="cloak main-content">
       <video class="grid-dimensions" id="video"></video>
+      <svg class="grid-dimensions" id="video-overlay" viewBox="0 0 100 100">
+        <path d="M15,5 h-10 v10" class="video-overlay__guides"></path>
+        <path d="M85,5 h10 v10" class="video-overlay__guides"></path>
+        <path d="M85,95 h10 v-10" class="video-overlay__guides"></path>
+        <path d="M15,95 h-10 v-10" class="video-overlay__guides"></path>
+      </svg>
       <canvas class="cloak grid-dimensions" id="canvas"></canvas>
       <svg class="cloak grid-dimensions" id="sudoku"></svg>
     </div>

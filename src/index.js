@@ -20,10 +20,6 @@ const showMainContent = () => {
   mainContentElement.style.display = 'block'
 }
 
-const videoElement = document.getElementById('video')
-const canvasElement = document.getElementById('canvas')
-const sudokuElement = document.getElementById('sudoku')
-
 let webcam = undefined
 let blanksModel = undefined
 let digitsModel = undefined
@@ -32,8 +28,14 @@ const DISPLAY_MODE_VIDEO = Symbol('DISPLAY_MODE_VIDEO')
 const DISPLAY_MODE_CANVAS = Symbol('DISPLAY_MODE_CANVAS')
 const DISPLAY_MODE_SUDOKU = Symbol('DISPLAY_MODE_SUDOKU')
 
+const videoElement = document.getElementById('video')
+const videoOverlayElement = document.getElementById('video-overlay')
+const canvasElement = document.getElementById('canvas')
+const sudokuElement = document.getElementById('sudoku')
+
 const setDisplayMode = displayMode => {
   videoElement.style.display = displayMode === DISPLAY_MODE_VIDEO ? 'block' : 'none'
+  videoOverlayElement.style.display = displayMode === DISPLAY_MODE_VIDEO ? 'block' : 'none'
   canvasElement.style.display = displayMode === DISPLAY_MODE_CANVAS ? 'block' : 'none'
   sudokuElement.style.display = displayMode === DISPLAY_MODE_SUDOKU ? 'block' : 'none'
 }

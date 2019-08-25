@@ -62,6 +62,38 @@ body {
   max-height: var(--max-grid-size);
 }
 
+#video {
+  position: absolute;
+  border: 1px solid black;
+}
+
+#video-overlay {
+  position: relative;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.video-overlay__guides {
+  stroke: black;
+  stroke-width: 2;
+  fill: none;
+}
+
+/* .video-overlay__text {
+  font-size: calc(var(--grid-size) / 100);
+  dominant-baseline: central;
+  text-anchor: middle;
+  inline-size: 50%;
+} */
+
+/* .video-overlay__instructions {
+  fill: magenta;
+} */
+
+/* .video-overlay__error {
+  fill: #f00;
+} */
+
 .sudoku__grid-line {
   stroke: #888;
 }
