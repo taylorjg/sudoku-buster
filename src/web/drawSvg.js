@@ -12,8 +12,8 @@ const createSvgElement = (elementName, additionalAttributes = {}) => {
   return element
 }
 
-const drawHorizontalGridLines = gridElement => {
-  const width = gridElement.getBoundingClientRect().width
+const drawHorizontalGridLines = svgElement => {
+  const width = svgElement.getBoundingClientRect().width
   const squareSize = (width - 2 * TX) / 9
   const ys = R.range(0, 10)
   ys.forEach(y => {
@@ -25,12 +25,12 @@ const drawHorizontalGridLines = gridElement => {
       'class': 'sudoku__grid-line',
       'stroke-width': y % 3 == 0 ? GRID_LINE_THICK_WIDTH : GRID_LINE_THIN_WIDTH
     })
-    gridElement.appendChild(gridLine)
+    svgElement.appendChild(gridLine)
   })
 }
 
-const drawVerticalGridLines = gridElement => {
-  const height = gridElement.getBoundingClientRect().height
+const drawVerticalGridLines = svgElement => {
+  const height = svgElement.getBoundingClientRect().height
   const squareSize = (height - 2 * TY) / 9
   const xs = R.range(0, 10)
   xs.forEach(x => {
@@ -42,13 +42,13 @@ const drawVerticalGridLines = gridElement => {
       'class': 'sudoku__grid-line',
       'stroke-width': x % 3 == 0 ? GRID_LINE_THICK_WIDTH : GRID_LINE_THIN_WIDTH
     })
-    gridElement.appendChild(gridLine)
+    svgElement.appendChild(gridLine)
   })
 }
 
-const drawValue = (gridElement, row) => {
-  const width = gridElement.getBoundingClientRect().width
-  const height = gridElement.getBoundingClientRect().height
+const drawValue = (svgElement, row) => {
+  const width = svgElement.getBoundingClientRect().width
+  const height = svgElement.getBoundingClientRect().height
   const squareWidth = (width - GRID_LINE_THICK_WIDTH) / 9
   const squareHeight = (height - GRID_LINE_THICK_WIDTH) / 9
   const textElement = createSvgElement('text', {
@@ -62,32 +62,30 @@ const drawValue = (gridElement, row) => {
   })
   const textNode = document.createTextNode(row.value)
   textElement.appendChild(textNode)
-  gridElement.appendChild(textElement)
+  svgElement.appendChild(textElement)
 }
 
-const drawInitialValues = (gridElement, initialValues) => {
-  initialValues.forEach(row => drawValue(gridElement, row))
+const drawInitialValues = (svgElement, initialValues) => {
+  initialValues.forEach(row => drawValue(svgElement, row))
 }
 
-const clearCalculatedValues = gridElement => {
-  const calculatedValues = gridElement.querySelectorAll('text[data-is-initial-value=false]')
-  calculatedValues.forEach(calculatedValue => gridElement.removeChild(calculatedValue))
+const clearCalculatedValues = svgElement => {
+  const calculatedValues = svgElement.querySelectorAll('text[data-is-initial-value=false]')
+  calculatedValues.forEach(calculatedValue => svgElement.removeChild(calculatedValue))
 }
 
-const drawCalculatedValues = (gridElement, rows) => {
-  clearCalculatedValues(gridElement)
+const drawCalculatedValues = (svgElement, rows) => {
+  clearCalculatedValues(svgElement)
   const rowsWithCalculatedValues = rows.filter(row => !row.isInitialValue)
-  rowsWithCalculatedValues.forEach(row => drawValue(gridElement, row))
+  rowsWithCalculatedValues.forEach(row => drawValue(svgElement, row))
 }
 
-export const drawInitialGrid = initialValues => {
-  const gridElement = document.getElementById('sudoku')
-  drawHorizontalGridLines(gridElement)
-  drawVerticalGridLines(gridElement)
-  drawInitialValues(gridElement, initialValues)
+export const drawInitialGrid = (svgElement, initialValues) => {
+  drawHorizontalGridLines(svgElement)
+  drawVerticalGridLines(svgElement)
+  drawInitialValues(svgElement, initialValues)
 }
 
-export const drawSolution = solution => {
-  const gridElement = document.getElementById('sudoku')
-  drawCalculatedValues(gridElement, solution)
+export const drawSolution = (svgElement, solution) => {
+  drawCalculatedValues(svgElement, solution)
 }

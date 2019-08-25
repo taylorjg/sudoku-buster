@@ -41,6 +41,7 @@ const setDisplayMode = displayMode => {
 const drawSolvedPuzzle = puzzle => {
   setDisplayMode(DISPLAY_MODE_SUDOKU)
   const initialValues = getInitialValues(puzzle)
+  console.dir(initialValues)
   drawInitialGrid(sudokuElement, initialValues)
   const solutions = solve(puzzle)
   if (solutions.length === 1) {
@@ -61,7 +62,9 @@ const scanSudokuFromImage = async imageData => {
   try {
     hideErrorPanel()
     const gridImageTensor = I.normaliseGridImage(imageData)
+    log.info(`[scanSudokuFromImage] normalised gridImageTensor.shape: ${gridImageTensor.shape}`)
     const boundingBox = await findBoundingBox(gridImageTensor)
+    log.info(`[scanSudokuFromImage] boundingBox: ${JSON.stringify(boundingBox)}`)
     if (!boundingBox) {
       throw new Error('Failed to find bounding box.')
     }
@@ -80,6 +83,7 @@ const scanSudokuFromImage = async imageData => {
     const indexedDigitImageTensorsArray = gridSquareImageTensorsArray
       .map((digitImageTensor, index) => ({ digitImageTensor, index }))
       .filter(({ index }) => !isBlank(blanksPredictionsArray[index]))
+    log.info(`[scanSudokuFromImage] indexedDigitImageTensorsArray.length: ${indexedDigitImageTensorsArray.length}`)
     const digitImageTensorsArray = R.pluck('digitImageTensor', indexedDigitImageTensorsArray)
     const inputs = tf.stack(digitImageTensorsArray)
     const outputs = digitsModel.predict(inputs)
@@ -96,6 +100,25 @@ const scanSudokuFromImage = async imageData => {
   }
 }
 
+const processImage = async gridImageTensor => {
+  log.info(`[processImage] gridImageTensor.shape: ${gridImageTensor.shape}`)
+  setDisplayMode(DISPLAY_MODE_CANVAS)
+  await tf.browser.toPixels(gridImageTensor, canvasElement)
+  const ctx = canvasElement.getContext('2d')
+  const imageWidth = canvasElement.width
+  const imageHeight = canvasElement.height
+  log.info(`[processImage] imageWidth: ${imageWidth}; imageHeight: ${imageHeight}`)
+  const imageData = ctx.getImageData(0, 0, imageWidth, imageHeight)
+  const puzzle = await scanSudokuFromImage(imageData)
+  if (!puzzle) {
+    setDisplayMode(DISPLAY_MODE_VIDEO)
+    return
+  }
+  log.info('[processImage] puzzle:')
+  puzzle.forEach((row, index) => log.info(`row[${index}]: ${row}`))
+  drawSolvedPuzzle(puzzle)
+}
+
 const startWebcam = async () => {
   const videoRect = videoElement.getBoundingClientRect()
   const webcamConfig = {
@@ -109,19 +132,10 @@ const startWebcam = async () => {
 }
 
 const captureWebcam = async () => {
-  const imageTensor = await webcam.capture()
+  const gridImageTensor = await webcam.capture()
   webcam.stop()
   webcam = undefined // eslint-disable-line
-  setDisplayMode(DISPLAY_MODE_CANVAS)
-  await tf.browser.toPixels(imageTensor, canvasElement)
-  const ctx = canvasElement.getContext('2d')
-  const imageWidth = canvasElement.width
-  const imageHeight = canvasElement.height
-  const imageData = ctx.getImageData(0, 0, imageWidth, imageHeight)
-  const puzzle = await scanSudokuFromImage(imageData)
-  puzzle
-    ? drawSolvedPuzzle(puzzle)
-    : setDisplayMode(DISPLAY_MODE_VIDEO)
+  processImage(gridImageTensor)
 }
 
 const onClickVideo = async () =>
@@ -153,6 +167,7 @@ const loadOpenCV = () => {
 }
 
 const main = () => {
+  log.setLevel('info')
   loadOpenCV()
 }
 
