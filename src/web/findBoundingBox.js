@@ -1,9 +1,12 @@
+import * as tf from '@tensorflow/tfjs'
 import * as R from 'ramda'
 import * as CALC from './calculations'
 
-export const findBoundingBox = canvas => {
+export const findBoundingBox = async gridImageTensor => {
 
-  const matInitial = cv.imread(canvas)
+  const tfCanvas = document.createElement('canvas')
+  await tf.browser.toPixels(gridImageTensor, tfCanvas)
+  const matInitial = cv.imread(tfCanvas)
 
   const matGrey = new cv.Mat(matInitial.size(), cv.CV_8UC1)
   cv.cvtColor(matInitial, matGrey, cv.COLOR_BGR2GRAY)

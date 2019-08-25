@@ -1,6 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 import * as R from 'ramda'
 import * as log from 'loglevel'
+import * as C from './constants'
 import * as D from './data'
 import * as I from './image'
 import * as P from './puzzle'
@@ -56,26 +57,24 @@ const isBlankPredictionRubbish = p =>
 
 const isBlank = p => p >= BLANK_PREDICTION_LOWER_LIMIT
 
-const scanSudokuFromImage = async canvas => {
+const scanSudokuFromImage = async imageData => {
   try {
     hideErrorPanel()
-    const boundingBox = findBoundingBox(canvas)
+    const gridImageTensor = I.normaliseGridImage(imageData)
+    const boundingBox = await findBoundingBox(gridImageTensor)
     if (!boundingBox) {
       throw new Error('Failed to find bounding box.')
     }
     const [, , bbw, bbh] = boundingBox
-    if (bbw < canvas.width / 2 || bbh < canvas.height / 2) {
-      throw new Error('Bounding box is too small.')
+    if (bbw < C.GRID_IMAGE_WIDTH / 2 || bbh < C.GRID_IMAGE_HEIGHT / 2) {
+      throw new Error(`Bounding box is too small (${JSON.stringify(boundingBox)}).`)
     }
-    const ctx = canvasElement.getContext('2d')
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-    const gridImageTensor = I.normaliseGridImage(imageData)
     const gridSquareImageTensors = D.cropGridSquaresFromUnknownGrid(
       gridImageTensor,
       boundingBox)
     const blanksPredictionsArray = blanksModel.predict(gridSquareImageTensors).arraySync()
     if (blanksPredictionsArray.some(isBlankPredictionRubbish)) {
-      throw new Error('Prediction of blanks vs digits too inaccurate to proceed.')
+      throw new Error('Poor prediction of blanks vs digits.')
     }
     const gridSquareImageTensorsArray = tf.unstack(gridSquareImageTensors)
     const indexedDigitImageTensorsArray = gridSquareImageTensorsArray
@@ -115,7 +114,11 @@ const captureWebcam = async () => {
   webcam = undefined // eslint-disable-line
   setDisplayMode(DISPLAY_MODE_CANVAS)
   await tf.browser.toPixels(imageTensor, canvasElement)
-  const puzzle = await scanSudokuFromImage(canvasElement)
+  const ctx = canvasElement.getContext('2d')
+  const imageWidth = canvasElement.width
+  const imageHeight = canvasElement.height
+  const imageData = ctx.getImageData(0, 0, imageWidth, imageHeight)
+  const puzzle = await scanSudokuFromImage(imageData)
   puzzle
     ? drawSolvedPuzzle(puzzle)
     : setDisplayMode(DISPLAY_MODE_VIDEO)
