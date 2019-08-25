@@ -24,20 +24,27 @@ let webcam = undefined
 let blanksModel = undefined
 let digitsModel = undefined
 
+const DISPLAY_MODE_INSTRUCTIONS = Symbol('DISPLAY_MODE_INSTRUCTIONS')
 const DISPLAY_MODE_VIDEO = Symbol('DISPLAY_MODE_VIDEO')
 const DISPLAY_MODE_CANVAS = Symbol('DISPLAY_MODE_CANVAS')
 const DISPLAY_MODE_SUDOKU = Symbol('DISPLAY_MODE_SUDOKU')
 
 const videoElement = document.getElementById('video')
-const videoOverlayElement = document.getElementById('video-overlay')
+const videoOverlayGuidesElement = document.getElementById('video-overlay-guides')
+const videoOverlayInstructionsElement = document.getElementById('video-overlay-instructions')
 const canvasElement = document.getElementById('canvas')
 const sudokuElement = document.getElementById('sudoku')
 
 const setDisplayMode = displayMode => {
-  videoElement.style.display = displayMode === DISPLAY_MODE_VIDEO ? 'block' : 'none'
-  videoOverlayElement.style.display = displayMode === DISPLAY_MODE_VIDEO ? 'block' : 'none'
-  canvasElement.style.display = displayMode === DISPLAY_MODE_CANVAS ? 'block' : 'none'
-  sudokuElement.style.display = displayMode === DISPLAY_MODE_SUDOKU ? 'block' : 'none'
+  const showOrHide = (element, ...displayModes) => {
+    const show = displayModes.includes(displayMode)
+    element.style.display = show ? 'block' : 'none'
+  }
+  showOrHide(videoElement, DISPLAY_MODE_INSTRUCTIONS, DISPLAY_MODE_VIDEO)
+  showOrHide(videoOverlayGuidesElement, DISPLAY_MODE_VIDEO)
+  showOrHide(videoOverlayInstructionsElement, DISPLAY_MODE_INSTRUCTIONS)
+  showOrHide(canvasElement, DISPLAY_MODE_CANVAS)
+  showOrHide(sudokuElement, DISPLAY_MODE_SUDOKU)
 }
 
 const drawSolvedPuzzle = puzzle => {
@@ -96,7 +103,7 @@ const scanSudokuFromImage = async imageData => {
     }))
     return P.indexedDigitPredictionsToInitialValues(indexedDigitPredictions)
   } catch (error) {
-    log.error(`[onPredictCapture] ${error.message}`)
+    log.error(`[scanSudokuFromImage] ${error.message}`)
     showErrorPanel(error.message)
     return undefined
   }
@@ -113,7 +120,7 @@ const processImage = async gridImageTensor => {
   const imageData = ctx.getImageData(0, 0, imageWidth, imageHeight)
   const puzzle = await scanSudokuFromImage(imageData)
   if (!puzzle) {
-    setDisplayMode(DISPLAY_MODE_VIDEO)
+    setDisplayMode(DISPLAY_MODE_INSTRUCTIONS)
     return
   }
   log.info('[processImage] puzzle:')
@@ -131,6 +138,7 @@ const startWebcam = async () => {
   videoElement.width = videoRect.width
   videoElement.height = videoRect.height
   webcam = await tf.data.webcam(videoElement, webcamConfig) //eslint-disable-line
+  setDisplayMode(DISPLAY_MODE_VIDEO)
 }
 
 const captureWebcam = async () => {
@@ -144,7 +152,7 @@ const onClickVideo = async () =>
   webcam === undefined ? startWebcam() : captureWebcam()
 
 const onClickSudoku = () =>
-  setDisplayMode(DISPLAY_MODE_VIDEO)
+  setDisplayMode(DISPLAY_MODE_INSTRUCTIONS)
 
 videoElement.addEventListener('click', onClickVideo)
 sudokuElement.addEventListener('click', onClickSudoku)
@@ -158,6 +166,7 @@ const onOpenCVLoaded = async () => {
   digitsModel = models[1]
   hideSplashContent()
   showMainContent()
+  setDisplayMode(DISPLAY_MODE_INSTRUCTIONS)
 }
 
 const loadOpenCV = () => {

@@ -41,15 +41,23 @@
       </div>
     </div>
     <div class="cloak main-content">
-      <video class="grid-dimensions" id="video"></video>
-      <svg class="grid-dimensions" id="video-overlay" viewBox="0 0 100 100">
-        <path d="M15,5 h-10 v10" class="video-overlay__guides"></path>
-        <path d="M85,5 h10 v10" class="video-overlay__guides"></path>
-        <path d="M85,95 h10 v-10" class="video-overlay__guides"></path>
-        <path d="M15,95 h-10 v-10" class="video-overlay__guides"></path>
-      </svg>
-      <canvas class="cloak grid-dimensions" id="canvas"></canvas>
-      <svg class="cloak grid-dimensions" id="sudoku"></svg>
+      <div class="grid-dimensions absolute-container ">
+        <video class="grid-dimensions" id="video"></video>
+        <svg class="grid-dimensions" id="video-overlay-guides" viewBox="0 0 100 100">
+          <path d="M15,5 h-10 v10" class="video-overlay__guide"></path>
+          <path d="M85,5 h10 v10" class="video-overlay__guide"></path>
+          <path d="M85,95 h10 v-10" class="video-overlay__guide"></path>
+          <path d="M15,95 h-10 v-10" class="video-overlay__guide"></path>
+        </svg>
+        <div class="grid-dimensions" id="video-overlay-instructions">
+          <div class="video-overlay__text">
+            Tap inside this square to start the camera
+            then tap again to scan/solve a Sudoku.
+          </div>
+        </div>
+        <canvas class="cloak grid-dimensions" id="canvas"></canvas>
+        <svg class="cloak grid-dimensions" id="sudoku"></svg>
+      </div>
     </div>
   </div>
 </body>
