@@ -1,23 +1,18 @@
-const { Dlx } = require('dlxlib')
-const R = require('ramda')
+import * as R from 'ramda'
+import * as dlxlib from 'dlxlib'
 
 const ROWS = R.range(0, 9)
 const COLS = R.range(0, 9)
 const DIGITS = R.range(1, 10)
 
-const noop = () => {}
-
-const solve = (puzzle, onStep = noop, onSolution = noop) => {
+export const solve = puzzle => {
   const rows = buildRows(puzzle)
   const matrix = buildMatrix(rows)
-  const dlx = new Dlx()
   const resolveRowIndices = rowIndices => rowIndices.map(rowIndex => rows[rowIndex])
-  dlx.on('step', e => onStep(resolveRowIndices(e.partialSolution), e.stepIndex))
-  dlx.on('solution', e => onSolution(resolveRowIndices(e.solution), e.solutionIndex))
-  return dlx.solve(matrix).map(resolveRowIndices)
+  return dlxlib.solve(matrix).map(resolveRowIndices)
 }
 
-const getInitialValues = puzzle =>
+export const getInitialValues = puzzle =>
   buildRows(puzzle).filter(row => row.isInitialValue)
 
 const buildRows = puzzle => {
@@ -55,8 +50,3 @@ const rowColToBox = (row, col) =>
 
 const oneHot = (major, minor) =>
   R.update(major * 9 + minor, 1, R.repeat(0, 9 * 9))
-
-module.exports = {
-  solve,
-  getInitialValues
-}
