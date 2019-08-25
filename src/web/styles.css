@@ -89,3 +89,16 @@ body {
 #video {
   border: 1px solid darkblue;
 }
+
+#error-panel {
+  position: fixed;
+  max-width: calc(100% - 40px);
+  overflow-wrap: break-word;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+#error-panel .close {
+  margin-left: 10px;
+}

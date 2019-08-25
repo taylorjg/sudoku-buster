@@ -7,6 +7,7 @@ import * as P from './puzzle'
 import { findBoundingBox } from './findBoundingBox'
 import { solve, getInitialValues } from './solve'
 import { drawInitialGrid, drawSolution } from './drawSvg'
+import { showErrorPanel, hideErrorPanel } from './errorPanel'
 
 const hideSplashContent = () => {
   const splashContentElement = document.querySelector('.splash-content')
@@ -36,7 +37,7 @@ const setDisplayMode = displayMode => {
   sudokuElement.style.display = displayMode === DISPLAY_MODE_SUDOKU ? 'block' : 'none'
 }
 
-const drawSolvedSudoku = puzzle => {
+const drawSolvedPuzzle = puzzle => {
   setDisplayMode(DISPLAY_MODE_SUDOKU)
   const initialValues = getInitialValues(puzzle)
   drawInitialGrid(sudokuElement, initialValues)
@@ -57,6 +58,7 @@ const isBlank = p => p >= BLANK_PREDICTION_LOWER_LIMIT
 
 const scanSudokuFromImage = async canvas => {
   try {
+    hideErrorPanel()
     const boundingBox = findBoundingBox(canvas)
     if (!boundingBox) {
       throw new Error('Failed to find bounding box.')
@@ -90,6 +92,8 @@ const scanSudokuFromImage = async canvas => {
     return P.indexedDigitPredictionsToInitialValues(indexedDigitPredictions)
   } catch (error) {
     log.error(`[onPredictCapture] ${error.message}`)
+    showErrorPanel(error.message)
+    return undefined
   }
 }
 
@@ -112,7 +116,9 @@ const captureWebcam = async () => {
   setDisplayMode(DISPLAY_MODE_CANVAS)
   await tf.browser.toPixels(imageTensor, canvasElement)
   const puzzle = await scanSudokuFromImage(canvasElement)
-  drawSolvedSudoku(puzzle)
+  puzzle
+    ? drawSolvedPuzzle(puzzle)
+    : setDisplayMode(DISPLAY_MODE_VIDEO)
 }
 
 const onClickVideo = async () =>
