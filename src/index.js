@@ -157,6 +157,16 @@ const onClickSudoku = () =>
 videoElement.addEventListener('click', onClickVideo)
 sudokuElement.addEventListener('click', onClickSudoku)
 
+const primeModels = () => {
+  const canvas = document.createElement('canvas')
+  canvas.width = C.DIGIT_IMAGE_WIDTH
+  canvas.height = C.DIGIT_IMAGE_HEIGHT
+  const imageTensor = tf.browser.fromPixels(canvas, C.DIGIT_IMAGE_CHANNELS)
+  const xs = tf.stack(R.of(imageTensor))
+  blanksModel.predict(xs)
+  digitsModel.predict(xs)
+}
+
 const onOpenCVLoaded = async () => {
   const models = await Promise.all([
     tf.loadLayersModel(`${location.origin}/models/blanks/model.json`),
@@ -164,6 +174,7 @@ const onOpenCVLoaded = async () => {
   ])
   blanksModel = models[0]
   digitsModel = models[1]
+  primeModels()
   hideSplashContent()
   showMainContent()
   setDisplayMode(DISPLAY_MODE_INSTRUCTIONS)
@@ -182,4 +193,5 @@ const main = () => {
   loadOpenCV()
 }
 
+// const imageTensor = tf.browser.fromPixels(canvas)
 main()
