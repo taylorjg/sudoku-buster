@@ -51,13 +51,16 @@ body {
 }
 
 :root {
-  --grid-size: 80vmin;
-  --max-grid-size: 80vmin;
+  --grid-size: 90vmin;
+  --min-grid-size: 200px;
+  --max-grid-size: 90vmin;
 }
 
 .grid-dimensions {
   width: var(--grid-size);
   height: var(--grid-size);
+  min-width: var(--min-grid-size);
+  min-height: var(--min-grid-size);
   max-width: var(--max-grid-size);
   max-height: var(--max-grid-size);
 }

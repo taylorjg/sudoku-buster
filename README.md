@@ -18,12 +18,15 @@ some of the resources are very large:
 
 | Resource | Size |
 | -------- | ---- |
-| opencv_4.1.1.js  | 8.7M |
-| bundle.js  | 1.8M |
-| models/digits/model.weights.bin | 628K |
-| models/blanks/model.weights.bin | 308K |
+| ~~opencv_4.1.1.js~~ | ~~8.7M~~ |
+| opencv.js | 4.1MB |
+| bundle.js | 976KB |
+| models/digits/model.weights.bin | 626KB |
+| models/blanks/model.weights.bin | 304KB |
 
 I clearly still have some work to do to reduce the size of these resources.
+
+> **UPDATE:** I have managed to halve the size of opencv.js by making my own custom build.
 
 # Instructions
 
