@@ -130,13 +130,13 @@ const processImage = async gridImageTensor => {
 
 const startWebcam = async () => {
   const videoRect = videoElement.getBoundingClientRect()
-  const webcamConfig = {
-    facingMode: 'environment',
-    resizeWidth: videoRect.width,
-    resizeHeight: videoRect.height
-  }
-  videoElement.width = videoRect.width
-  videoElement.height = videoRect.height
+  log.info(`[startWebcam] videoRect: ${JSON.stringify(videoRect)}`)
+  const width = Math.round(videoRect.width)
+  const height = Math.round(videoRect.height)
+  log.info(`[startWebcam] width: ${width}; height: ${height}`)
+  const webcamConfig = { facingMode: 'environment' }
+  videoElement.width = width
+  videoElement.height = height
   webcam = await tf.data.webcam(videoElement, webcamConfig) //eslint-disable-line
   setDisplayMode(DISPLAY_MODE_VIDEO)
 }
