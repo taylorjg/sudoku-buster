@@ -183,15 +183,15 @@ const onOpenCVLoaded = async () => {
 const loadOpenCV = () => {
   const headElement = document.querySelector('head')
   const scriptElement = document.createElement('script')
-  scriptElement.setAttribute('src', '/opencv_4.1.1.js')
+  scriptElement.setAttribute('src', '/opencv.js')
   scriptElement.onload = onOpenCVLoaded
   headElement.appendChild(scriptElement)
 }
 
 const main = () => {
+  window.log = log
   log.setLevel('error')
   loadOpenCV()
 }
 
-// const imageTensor = tf.browser.fromPixels(canvas)
 main()
