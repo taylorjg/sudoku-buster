@@ -42,8 +42,9 @@ export const convertToGreyscale = imageData => {
   return new ImageData(array, width, height)
 }
 
-export const normaliseGridImage = imageData => {
-  const imageDataGreyscale = convertToGreyscale(imageData)
-  const imageTensorGreyscale = tf.browser.fromPixels(imageDataGreyscale, C.GRID_IMAGE_CHANNELS)
-  return tf.image.resizeBilinear(imageTensorGreyscale, [C.GRID_IMAGE_HEIGHT, C.GRID_IMAGE_WIDTH])
-}
+export const normaliseGridImage = imageData =>
+  tf.tidy(() => {
+    const imageDataGreyscale = convertToGreyscale(imageData)
+    const imageTensorGreyscale = tf.browser.fromPixels(imageDataGreyscale, C.GRID_IMAGE_CHANNELS)
+    return tf.image.resizeBilinear(imageTensorGreyscale, [C.GRID_IMAGE_HEIGHT, C.GRID_IMAGE_WIDTH])
+  })

@@ -14,12 +14,12 @@ const normaliseForGridCropping = ([x, y, w, h]) => {
   ]
 }
 
-// TODO: tf.tidy / tf.dispose
-export const cropGridSquaresFromUnknownGrid = (gridImageTensor, boundingBox) => {
-  const gridSquares = CALC.calculateGridSquares(boundingBox)
-  const image = tf.stack(R.of(gridImageTensor.div(255)))
-  const boxes = gridSquares.map(normaliseForGridCropping)
-  const boxInd = R.repeat(0, boxes.length)
-  const cropSize = [C.DIGIT_IMAGE_HEIGHT, C.DIGIT_IMAGE_WIDTH]
-  return tf.image.cropAndResize(image, boxes, boxInd, cropSize)
-}
+export const cropGridSquaresFromUnknownGrid = (gridImageTensor, boundingBox) =>
+  tf.tidy(() => {
+    const gridSquares = CALC.calculateGridSquares(boundingBox)
+    const image = tf.stack(R.of(gridImageTensor.div(255)))
+    const boxes = gridSquares.map(normaliseForGridCropping)
+    const boxInd = R.repeat(0, boxes.length)
+    const cropSize = [C.DIGIT_IMAGE_HEIGHT, C.DIGIT_IMAGE_WIDTH]
+    return tf.image.cropAndResize(image, boxes, boxInd, cropSize)
+  })

@@ -50,7 +50,6 @@ const setDisplayMode = displayMode => {
 const drawSolvedPuzzle = puzzle => {
   setDisplayMode(DISPLAY_MODE_SUDOKU)
   const initialValues = getInitialValues(puzzle)
-  console.dir(initialValues)
   drawInitialGrid(sudokuElement, initialValues)
   const solutions = solve(puzzle)
   if (solutions.length === 1) {
@@ -68,9 +67,10 @@ const isBlankPredictionRubbish = p =>
 const isBlank = p => p >= BLANK_PREDICTION_LOWER_LIMIT
 
 const scanSudokuFromImage = async imageData => {
+  const disposables = []
   try {
-    hideErrorPanel()
     const gridImageTensor = I.normaliseGridImage(imageData)
+    disposables.push(gridImageTensor)
     log.info(`[scanSudokuFromImage] normalised gridImageTensor.shape: ${gridImageTensor.shape}`)
     const boundingBox = await findBoundingBox(gridImageTensor)
     log.info(`[scanSudokuFromImage] boundingBox: ${JSON.stringify(boundingBox)}`)
@@ -84,19 +84,25 @@ const scanSudokuFromImage = async imageData => {
     const gridSquareImageTensors = D.cropGridSquaresFromUnknownGrid(
       gridImageTensor,
       boundingBox)
-    const blanksPredictionsArray = blanksModel.predict(gridSquareImageTensors).arraySync()
+    disposables.push(gridSquareImageTensors)
+    const blanksPredictions = blanksModel.predict(gridSquareImageTensors)
+    disposables.push(blanksPredictions)
+    const blanksPredictionsArray = blanksPredictions.arraySync()
     if (blanksPredictionsArray.some(isBlankPredictionRubbish)) {
       throw new Error('Poor prediction of blanks vs digits.')
     }
     const gridSquareImageTensorsArray = tf.unstack(gridSquareImageTensors)
+    disposables.push(...gridSquareImageTensorsArray)
     const indexedDigitImageTensorsArray = gridSquareImageTensorsArray
       .map((digitImageTensor, index) => ({ digitImageTensor, index }))
       .filter(({ index }) => !isBlank(blanksPredictionsArray[index]))
     log.info(`[scanSudokuFromImage] indexedDigitImageTensorsArray.length: ${indexedDigitImageTensorsArray.length}`)
     const digitImageTensorsArray = R.pluck('digitImageTensor', indexedDigitImageTensorsArray)
     const inputs = tf.stack(digitImageTensorsArray)
+    disposables.push(inputs)
     const outputs = digitsModel.predict(inputs)
-    const digitPredictions = outputs.argMax(1).arraySync().map(R.inc)
+    disposables.push(outputs)
+    const digitPredictions = tf.tidy(() => outputs.argMax(1).arraySync().map(R.inc))
     const indexedDigitPredictions = digitPredictions.map((digitPrediction, index) => ({
       digitPrediction,
       index: indexedDigitImageTensorsArray[index].index
@@ -106,6 +112,8 @@ const scanSudokuFromImage = async imageData => {
     log.error(`[scanSudokuFromImage] ${error.message}`)
     showErrorPanel(error.message)
     return undefined
+  } finally {
+    disposables.forEach(disposable => disposable.dispose())
   }
 }
 
@@ -129,6 +137,7 @@ const processImage = async gridImageTensor => {
 }
 
 const startWebcam = async () => {
+  hideErrorPanel()
   const videoRect = videoElement.getBoundingClientRect()
   log.info(`[startWebcam] videoRect: ${JSON.stringify(videoRect)}`)
   const width = Math.round(videoRect.width)
@@ -145,7 +154,9 @@ const captureWebcam = async () => {
   const gridImageTensor = await webcam.capture()
   webcam.stop()
   webcam = undefined // eslint-disable-line
-  processImage(gridImageTensor)
+  await processImage(gridImageTensor)
+  gridImageTensor.dispose()
+  log.info(`[captureWebcam] tf memory: ${JSON.stringify(tf.memory())}`)
 }
 
 const onClickVideo = async () =>
@@ -175,6 +186,7 @@ const onOpenCVLoaded = async () => {
   blanksModel = models[0]
   digitsModel = models[1]
   primeModels()
+  log.info(`[onOpenCVLoaded] tf memory: ${JSON.stringify(tf.memory())}`)
   hideSplashContent()
   showMainContent()
   setDisplayMode(DISPLAY_MODE_INSTRUCTIONS)
@@ -190,7 +202,6 @@ const loadOpenCV = () => {
 
 const main = () => {
   window.log = log
-  log.setLevel('error')
   loadOpenCV()
 }
 
