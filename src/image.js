@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
-import * as log from 'loglevel'
+import log from 'loglevel'
 import * as R from 'ramda'
 import * as C from './constants'
 
@@ -10,7 +10,7 @@ export const loadImage = async url => {
   const existingImageTensor = IMAGE_CACHE.get(url)
   if (existingImageTensor) return existingImageTensor
   const promise = new Promise((resolve, reject) => {
-    log.info(`Loading ${url}`)
+    log.info(`[loadImage] loading ${url}`)
     const image = new Image()
     image.src = url
     image.onload = () => resolve(tf.browser.fromPixels(image, C.GRID_IMAGE_CHANNELS))
