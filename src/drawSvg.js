@@ -71,28 +71,14 @@ const drawValue = (svgElement, row) => {
   svgElement.appendChild(textElement)
 }
 
-const drawInitialValues = (svgElement, initialValues) => {
-  initialValues.forEach(row => drawValue(svgElement, row))
-}
-
-const clearCalculatedValues = svgElement => {
-  const calculatedValues = svgElement.querySelectorAll('text[data-is-initial-value=false]')
-  calculatedValues.forEach(calculatedValue => svgElement.removeChild(calculatedValue))
-}
-
-const drawCalculatedValues = (svgElement, rows) => {
-  clearCalculatedValues(svgElement)
-  const rowsWithCalculatedValues = rows.filter(row => !row.isInitialValue)
-  rowsWithCalculatedValues.forEach(row => drawValue(svgElement, row))
-}
-
-export const drawInitialGrid = (svgElement, initialValues) => {
+export const drawInitialValues = (svgElement, initialValues) => {
   deleteChildren(svgElement)
   drawHorizontalGridLines(svgElement)
   drawVerticalGridLines(svgElement)
-  drawInitialValues(svgElement, initialValues)
+  initialValues.forEach(row => drawValue(svgElement, row))
 }
 
 export const drawSolution = (svgElement, solution) => {
-  drawCalculatedValues(svgElement, solution)
+  const calculatedValues = solution.filter(row => !row.isInitialValue)
+  calculatedValues.forEach(row => drawValue(svgElement, row))
 }

@@ -7,7 +7,7 @@ import * as I from './image'
 import * as P from './puzzle'
 import { findBoundingBox } from './findBoundingBox'
 import { solve, getInitialValues } from './solve'
-import { drawInitialGrid, drawSolution } from './drawSvg'
+import { drawInitialValues, drawSolution } from './drawSvg'
 import { showErrorPanel, hideErrorPanel } from './errorPanel'
 
 const hideSplashContent = () => {
@@ -47,10 +47,10 @@ const setDisplayMode = displayMode => {
   showOrHide(sudokuElement, DISPLAY_MODE_SUDOKU)
 }
 
-const drawSolvedPuzzle = puzzle => {
+const drawPuzzle = puzzle => {
   setDisplayMode(DISPLAY_MODE_SUDOKU)
   const initialValues = getInitialValues(puzzle)
-  drawInitialGrid(sudokuElement, initialValues)
+  drawInitialValues(sudokuElement, initialValues)
   const solutions = solve(puzzle)
   if (solutions.length === 1) {
     drawSolution(sudokuElement, solutions[0])
@@ -120,12 +120,7 @@ const scanSudokuFromImage = async imageData => {
 const processImage = async gridImageTensor => {
   log.info(`[processImage] gridImageTensor.shape: ${gridImageTensor.shape}`)
   setDisplayMode(DISPLAY_MODE_CANVAS)
-  await tf.browser.toPixels(gridImageTensor, canvasElement)
-  const ctx = canvasElement.getContext('2d')
-  const imageWidth = canvasElement.width
-  const imageHeight = canvasElement.height
-  log.info(`[processImage] imageWidth: ${imageWidth}; imageHeight: ${imageHeight}`)
-  const imageData = ctx.getImageData(0, 0, imageWidth, imageHeight)
+  const imageData = await I.imageTensorToImageData(gridImageTensor)
   const puzzle = await scanSudokuFromImage(imageData)
   if (!puzzle) {
     setDisplayMode(DISPLAY_MODE_INSTRUCTIONS)
@@ -133,7 +128,7 @@ const processImage = async gridImageTensor => {
   }
   log.info('[processImage] puzzle:')
   puzzle.forEach((row, index) => log.info(`row[${index}]: ${row}`))
-  drawSolvedPuzzle(puzzle)
+  drawPuzzle(puzzle)
 }
 
 const startWebcam = async () => {
