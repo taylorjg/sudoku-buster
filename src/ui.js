@@ -13,12 +13,10 @@ export const showMainContent = () => {
 const videoElement = document.getElementById('video')
 const videoOverlayGuidesElement = document.getElementById('video-overlay-guides')
 const videoOverlayInstructionsElement = document.getElementById('video-overlay-instructions')
-const canvasElement = document.getElementById('canvas')
 const sudokuElement = document.getElementById('sudoku')
 
 export const DISPLAY_MODE_INSTRUCTIONS = Symbol('DISPLAY_MODE_INSTRUCTIONS')
 export const DISPLAY_MODE_VIDEO = Symbol('DISPLAY_MODE_VIDEO')
-export const DISPLAY_MODE_CANVAS = Symbol('DISPLAY_MODE_CANVAS')
 export const DISPLAY_MODE_SUDOKU = Symbol('DISPLAY_MODE_SUDOKU')
 
 export const setDisplayMode = displayMode => {
@@ -29,7 +27,6 @@ export const setDisplayMode = displayMode => {
   showOrHide(videoElement, DISPLAY_MODE_INSTRUCTIONS, DISPLAY_MODE_VIDEO)
   showOrHide(videoOverlayGuidesElement, DISPLAY_MODE_VIDEO)
   showOrHide(videoOverlayInstructionsElement, DISPLAY_MODE_INSTRUCTIONS)
-  showOrHide(canvasElement, DISPLAY_MODE_CANVAS)
   showOrHide(sudokuElement, DISPLAY_MODE_SUDOKU)
 }
 
@@ -42,10 +39,10 @@ export const drawPuzzle = (initialValues, solutions) => {
 
 export const setVideoClickHandler = handler => {
   videoElement.addEventListener('click', () =>
-    handler({ videoElement, canvasElement, sudokuElement }))
+    handler({ videoElement, sudokuElement }))
 }
 
 export const setSudokuClickHandler = handler => {
   sudokuElement.addEventListener('click', () =>
-    handler({ videoElement, canvasElement, sudokuElement }))
+    handler({ videoElement, sudokuElement }))
 }

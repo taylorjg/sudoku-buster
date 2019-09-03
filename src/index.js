@@ -6,31 +6,24 @@ import { loadModels, getBlanksModel, getDigitsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
 import { scanPuzzle } from './scan'
 import { getInitialValues, solve } from './solve'
-import { showErrorPanel, hideErrorPanel } from './errorPanel'
 
-const processImage = async (gridImageTensor, canvasElement) => {
+const processImage = async gridImageTensor => {
   try {
     log.info(`[processImage] gridImageTensor.shape: ${gridImageTensor.shape}`)
-    // UI.setDisplayMode(UI.DISPLAY_MODE_CANVAS)
-    // const imageData = await I.imageTensorToImageData(gridImageTensor, canvasElement)
     const imageData = await I.imageTensorToImageData(gridImageTensor)
     const puzzle = await scanPuzzle(getBlanksModel(), getDigitsModel(), imageData)
     if (!puzzle) {
-      // UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
       return false
     }
-    UI.setDisplayMode(UI.DISPLAY_MODE_SUDOKU)
     const initialValues = getInitialValues(puzzle)
     const solutions = solve(puzzle)
     if (solutions.length !== 1) {
       return false
     }
+    UI.setDisplayMode(UI.DISPLAY_MODE_SUDOKU)
     UI.drawPuzzle(initialValues, solutions)
     return true
   } catch (error) {
-    // log.error(`[processImage] ${error.message}`)
-    // showErrorPanel(error.message)
-    // UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
     return false
   }
 }
@@ -41,19 +34,18 @@ const onVideoClick = async elements => {
     UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
     return
   } else {
-    hideErrorPanel()
     await startWebcam(elements.videoElement)
     UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
   }
   for (; ;) {
     if (!isWebcamStarted()) {
-      break
+      return
     }
     const disposables = []
     try {
       const gridImageTensor = await captureWebcam()
       disposables.push(gridImageTensor)
-      const result = await processImage(gridImageTensor, elements.canvasElement)
+      const result = await processImage(gridImageTensor)
       if (result) {
         stopWebcam()
         break
