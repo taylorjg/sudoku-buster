@@ -50,7 +50,7 @@ export const scanPuzzle = async (blanksModel, digitsModel, imageData) => {
     disposables.push(gridSquareImageTensors)
     const blanksPredictions = blanksModel.predict(gridSquareImageTensors)
     disposables.push(blanksPredictions)
-    const blanksPredictionsArray = blanksPredictions.arraySync()
+    const blanksPredictionsArray = await blanksPredictions.array()
     if (blanksPredictionsArray.some(isBlankPredictionRubbish)) {
       throw new Error('Poor prediction of blanks vs digits.')
     }
@@ -67,7 +67,10 @@ export const scanPuzzle = async (blanksModel, digitsModel, imageData) => {
     disposables.push(inputs)
     const outputs = digitsModel.predict(inputs)
     disposables.push(outputs)
-    const digitPredictions = tf.tidy(() => outputs.argMax(1).arraySync().map(R.inc))
+    const outputsArgMax = outputs.argMax(1)
+    disposables.push(outputsArgMax)
+    const outputsArgMaxArray = await outputsArgMax.array() 
+    const digitPredictions = outputsArgMaxArray.map(R.inc)
     const indexedDigitPredictions = digitPredictions.map((digitPrediction, index) => ({
       digitPrediction,
       index: indexedDigitImageTensorsArray[index].index
