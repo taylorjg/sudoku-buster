@@ -1,3 +1,5 @@
+import { drawInitialValues, drawSolution } from './drawSvg'
+
 export const hideSplashContent = () => {
   const splashContentElement = document.querySelector('.splash-content')
   splashContentElement.style.display = 'none'
@@ -8,11 +10,11 @@ export const showMainContent = () => {
   mainContentElement.style.display = 'block'
 }
 
-export const videoElement = document.getElementById('video')
+const videoElement = document.getElementById('video')
 const videoOverlayGuidesElement = document.getElementById('video-overlay-guides')
 const videoOverlayInstructionsElement = document.getElementById('video-overlay-instructions')
 const canvasElement = document.getElementById('canvas')
-export const sudokuElement = document.getElementById('sudoku')
+const sudokuElement = document.getElementById('sudoku')
 
 export const DISPLAY_MODE_INSTRUCTIONS = Symbol('DISPLAY_MODE_INSTRUCTIONS')
 export const DISPLAY_MODE_VIDEO = Symbol('DISPLAY_MODE_VIDEO')
@@ -29,4 +31,21 @@ export const setDisplayMode = displayMode => {
   showOrHide(videoOverlayInstructionsElement, DISPLAY_MODE_INSTRUCTIONS)
   showOrHide(canvasElement, DISPLAY_MODE_CANVAS)
   showOrHide(sudokuElement, DISPLAY_MODE_SUDOKU)
+}
+
+export const drawPuzzle = (initialValues, solutions) => {
+  drawInitialValues(sudokuElement, initialValues)
+  if (solutions.length === 1) {
+    drawSolution(sudokuElement, solutions[0])
+  }
+}
+
+export const setVideoClickHandler = handler => {
+  videoElement.addEventListener('click', () =>
+    handler({ videoElement, canvasElement, sudokuElement }))
+}
+
+export const setSudokuClickHandler = handler => {
+  sudokuElement.addEventListener('click', () =>
+    handler({ videoElement, canvasElement, sudokuElement }))
 }

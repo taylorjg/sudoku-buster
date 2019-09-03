@@ -1,92 +1,55 @@
 import * as tf from '@tensorflow/tfjs'
-import * as R from 'ramda'
 import log from 'loglevel'
-import * as C from './constants'
 import * as I from './image'
 import * as UI from './ui'
-import { scanSudokuFromImage } from './scan'
+import { loadModels, getBlanksModel, getDigitsModel } from './models'
+import { isWebcamStarted, startWebcam, captureWebcam } from './webcam'
+import { scanPuzzle } from './scan'
 import { getInitialValues, solve } from './solve'
-import { drawInitialValues, drawSolution } from './drawSvg'
-import { hideErrorPanel } from './errorPanel'
+import { showErrorPanel, hideErrorPanel } from './errorPanel'
 
-let webcam = undefined
-let blanksModel = undefined
-let digitsModel = undefined
-
-const drawPuzzle = puzzle => {
-  UI.setDisplayMode(UI.DISPLAY_MODE_SUDOKU)
-  const initialValues = getInitialValues(puzzle)
-  drawInitialValues(UI.sudokuElement, initialValues)
-  const solutions = solve(puzzle)
-  if (solutions.length === 1) {
-    drawSolution(UI.sudokuElement, solutions[0])
-  }
-}
-
-const processImage = async gridImageTensor => {
-  log.info(`[processImage] gridImageTensor.shape: ${gridImageTensor.shape}`)
-  UI.setDisplayMode(UI.DISPLAY_MODE_CANVAS)
-  const imageData = await I.imageTensorToImageData(gridImageTensor)
-  const puzzle = await scanSudokuFromImage(blanksModel, digitsModel, imageData)
-  if (!puzzle) {
+const processImage = async (gridImageTensor, canvasElement) => {
+  try {
+    log.info(`[processImage] gridImageTensor.shape: ${gridImageTensor.shape}`)
+    UI.setDisplayMode(UI.DISPLAY_MODE_CANVAS)
+    const imageData = await I.imageTensorToImageData(gridImageTensor, canvasElement)
+    const puzzle = await scanPuzzle(getBlanksModel(), getDigitsModel(), imageData)
+    if (!puzzle) {
+      UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+      return
+    }
+    UI.setDisplayMode(UI.DISPLAY_MODE_SUDOKU)
+    const initialValues = getInitialValues(puzzle)
+    const solutions = solve(puzzle)
+    UI.drawPuzzle(initialValues, solutions)
+  } catch (error) {
+    log.error(`[processImage] ${error.message}`)
+    showErrorPanel(error.message)
     UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
-    return
   }
-  log.info('[processImage] puzzle:')
-  puzzle.forEach((row, index) => log.info(`row[${index}]: ${row}`))
-  drawPuzzle(puzzle)
 }
 
-const startWebcam = async () => {
-  hideErrorPanel()
-  const videoRect = UI.videoElement.getBoundingClientRect()
-  log.info(`[startWebcam] videoRect: ${JSON.stringify(videoRect)}`)
-  const width = Math.round(videoRect.width)
-  const height = Math.round(videoRect.height)
-  log.info(`[startWebcam] width: ${width}; height: ${height}`)
-  const webcamConfig = { facingMode: 'environment' }
-  UI.videoElement.width = width
-  UI.videoElement.height = height
-  webcam = await tf.data.webcam(UI.videoElement, webcamConfig) //eslint-disable-line
-  UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
+const onVideoClick = async elements => {
+  if (isWebcamStarted()) {
+    const gridImageTensor = await captureWebcam()
+    await processImage(gridImageTensor, elements.canvasElement)
+    gridImageTensor.dispose()
+    log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
+  } else {
+    hideErrorPanel()
+    startWebcam(elements.videoElement)
+    UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
+  }
 }
 
-const captureWebcam = async () => {
-  const gridImageTensor = await webcam.capture()
-  webcam.stop()
-  webcam = undefined // eslint-disable-line
-  await processImage(gridImageTensor)
-  gridImageTensor.dispose()
-  log.info(`[captureWebcam] tf memory: ${JSON.stringify(tf.memory())}`)
-}
-
-const onClickVideo = async () =>
-  webcam === undefined ? startWebcam() : captureWebcam()
-
-const onClickSudoku = () =>
+const onSudokuClick = () =>
   UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
 
-UI.videoElement.addEventListener('click', onClickVideo)
-UI.sudokuElement.addEventListener('click', onClickSudoku)
-
-const primeModels = () => {
-  const canvas = document.createElement('canvas')
-  canvas.width = C.DIGIT_IMAGE_WIDTH
-  canvas.height = C.DIGIT_IMAGE_HEIGHT
-  const imageTensor = tf.browser.fromPixels(canvas, C.DIGIT_IMAGE_CHANNELS)
-  const xs = tf.stack(R.of(imageTensor))
-  blanksModel.predict(xs)
-  digitsModel.predict(xs)
-}
+UI.setVideoClickHandler(onVideoClick)
+UI.setSudokuClickHandler(onSudokuClick)
 
 const onOpenCVLoaded = async () => {
-  const models = await Promise.all([
-    tf.loadLayersModel(`${location.origin}/models/blanks/model.json`),
-    tf.loadLayersModel(`${location.origin}/models/digits/model.json`)
-  ])
-  blanksModel = models[0]
-  digitsModel = models[1]
-  primeModels()
+  await loadModels()
   log.info(`[onOpenCVLoaded] tf memory: ${JSON.stringify(tf.memory())}`)
   UI.hideSplashContent()
   UI.showMainContent()

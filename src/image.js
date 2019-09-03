@@ -21,14 +21,11 @@ export const loadImage = async url => {
   return imageTensor
 }
 
-export const imageTensorToImageData = async imageTensor => {
-  const canvas = document.createElement('canvas')
+export const imageTensorToImageData = async (imageTensor, canvasElement) => {
+  const canvas = canvasElement ? canvasElement : document.createElement('canvas')
   await tf.browser.toPixels(imageTensor, canvas)
   const ctx = canvas.getContext('2d')
-  const imageWidth = canvas.width
-  const imageHeight = canvas.height
-  const imageData = ctx.getImageData(0, 0, imageWidth, imageHeight)
-  return imageData
+  return ctx.getImageData(0, 0, canvas.width, canvas.height)
 }
 
 export const convertToGreyscale = imageData => {

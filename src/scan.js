@@ -6,7 +6,6 @@ import * as D from './data'
 import * as I from './image'
 import * as P from './puzzle'
 import { findBoundingBox } from './findBoundingBox'
-import { showErrorPanel } from './errorPanel'
 
 const BLANK_PREDICTION_ACCURACY = 0.25
 const BLANK_PREDICTION_LOWER_LIMIT = 1 - BLANK_PREDICTION_ACCURACY
@@ -18,24 +17,24 @@ const isBlankPredictionRubbish = p =>
 const isBlank = p => p >= BLANK_PREDICTION_LOWER_LIMIT
 
 // TODO
-const findDigits = (blanksModel, gridImageTensor, boundingBox) => {
-  // return indexedDigitImageTensorsArray
-}
+// const findDigits = (blanksModel, gridImageTensor, boundingBox) => {
+//   // return indexedDigitImageTensorsArray
+// }
 
 // TODO
-const recogniseDigits = (digitsModel, indexedDigitImageTensorsArray) => {
-  // return indexedDigitPredictions
-}
+// const recogniseDigits = (digitsModel, indexedDigitImageTensorsArray) => {
+//   // return indexedDigitPredictions
+// }
 
-export const scanSudokuFromImage = async (blanksModel, digitsModel, imageData) => {
+export const scanPuzzle = async (blanksModel, digitsModel, imageData) => {
   const disposables = []
   try {
     const gridImageTensor = I.normaliseGridImage(imageData)
     disposables.push(gridImageTensor)
-    log.info(`[scanSudokuFromImage] normalised gridImageTensor.shape: ${gridImageTensor.shape}`)
+    log.info(`[scanPuzzle] normalised gridImageTensor.shape: ${gridImageTensor.shape}`)
 
     const boundingBox = await findBoundingBox(gridImageTensor)
-    log.info(`[scanSudokuFromImage] boundingBox: ${JSON.stringify(boundingBox)}`)
+    log.info(`[scanPuzzle] boundingBox: ${JSON.stringify(boundingBox)}`)
     if (!boundingBox) {
       throw new Error('Failed to find bounding box.')
     }
@@ -44,6 +43,7 @@ export const scanSudokuFromImage = async (blanksModel, digitsModel, imageData) =
       throw new Error(`Bounding box is too small, ${JSON.stringify(boundingBox)}.`)
     }
 
+    // Extract to 'findDigits'
     const gridSquareImageTensors = D.cropGridSquaresFromUnknownGrid(
       gridImageTensor,
       boundingBox)
@@ -59,8 +59,9 @@ export const scanSudokuFromImage = async (blanksModel, digitsModel, imageData) =
     const indexedDigitImageTensorsArray = gridSquareImageTensorsArray
       .map((digitImageTensor, index) => ({ digitImageTensor, index }))
       .filter(({ index }) => !isBlank(blanksPredictionsArray[index]))
-    log.info(`[scanSudokuFromImage] indexedDigitImageTensorsArray.length: ${indexedDigitImageTensorsArray.length}`)
+    log.info(`[scanPuzzle] indexedDigitImageTensorsArray.length: ${indexedDigitImageTensorsArray.length}`)
 
+    // Extract to 'recogniseDigits'
     const digitImageTensorsArray = R.pluck('digitImageTensor', indexedDigitImageTensorsArray)
     const inputs = tf.stack(digitImageTensorsArray)
     disposables.push(inputs)
@@ -73,10 +74,6 @@ export const scanSudokuFromImage = async (blanksModel, digitsModel, imageData) =
     }))
 
     return P.indexedDigitPredictionsToInitialValues(indexedDigitPredictions)
-  } catch (error) {
-    log.error(`[scanSudokuFromImage] ${error.message}`)
-    showErrorPanel(error.message)
-    return undefined
   } finally {
     disposables.forEach(disposable => disposable.dispose())
   }

@@ -2,7 +2,7 @@ import chai from 'chai'
 import chaiAlmost from 'chai-almost'
 import * as tf from '@tensorflow/tfjs'
 import { findBoundingBox } from '../src/findBoundingBox.js'
-import { scanSudokuFromImage } from '../src/scan'
+import { scanPuzzle } from '../src/scan'
 import * as I from '../src/image'
 
 const { expect } = chai
@@ -49,9 +49,9 @@ describe('sudoku-buster tests', () => {
     expect(h).to.be.almost(184, 3)
   })
 
-  it('scanSudokuFromImage', async () => {
+  it('scanPuzzle', async () => {
     const numTensorsBefore = tf.memory().numTensors
-    const actual = await scanSudokuFromImage(blanksModel, digitsModel, imageData)
+    const actual = await scanPuzzle(blanksModel, digitsModel, imageData)
     const expected = [
       "28  3  45",
       "5 4   6 2",
