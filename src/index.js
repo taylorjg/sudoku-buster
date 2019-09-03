@@ -3,7 +3,7 @@ import log from 'loglevel'
 import * as I from './image'
 import * as UI from './ui'
 import { loadModels, getBlanksModel, getDigitsModel } from './models'
-import { isWebcamStarted, startWebcam, captureWebcam } from './webcam'
+import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
 import { scanPuzzle } from './scan'
 import { getInitialValues, solve } from './solve'
 import { showErrorPanel, hideErrorPanel } from './errorPanel'
@@ -11,35 +11,60 @@ import { showErrorPanel, hideErrorPanel } from './errorPanel'
 const processImage = async (gridImageTensor, canvasElement) => {
   try {
     log.info(`[processImage] gridImageTensor.shape: ${gridImageTensor.shape}`)
-    UI.setDisplayMode(UI.DISPLAY_MODE_CANVAS)
-    const imageData = await I.imageTensorToImageData(gridImageTensor, canvasElement)
+    // UI.setDisplayMode(UI.DISPLAY_MODE_CANVAS)
+    // const imageData = await I.imageTensorToImageData(gridImageTensor, canvasElement)
+    const imageData = await I.imageTensorToImageData(gridImageTensor)
     const puzzle = await scanPuzzle(getBlanksModel(), getDigitsModel(), imageData)
     if (!puzzle) {
-      UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
-      return
+      // UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+      return false
     }
     UI.setDisplayMode(UI.DISPLAY_MODE_SUDOKU)
     const initialValues = getInitialValues(puzzle)
     const solutions = solve(puzzle)
+    if (solutions.length !== 1) {
+      return false
+    }
     UI.drawPuzzle(initialValues, solutions)
+    return true
   } catch (error) {
-    log.error(`[processImage] ${error.message}`)
-    showErrorPanel(error.message)
-    UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+    // log.error(`[processImage] ${error.message}`)
+    // showErrorPanel(error.message)
+    // UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+    return false
   }
 }
 
 const onVideoClick = async elements => {
   if (isWebcamStarted()) {
-    const gridImageTensor = await captureWebcam()
-    await processImage(gridImageTensor, elements.canvasElement)
-    gridImageTensor.dispose()
-    log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
+    stopWebcam()
+    UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+    return
   } else {
     hideErrorPanel()
-    startWebcam(elements.videoElement)
+    await startWebcam(elements.videoElement)
     UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
   }
+  for (; ;) {
+    if (!isWebcamStarted()) {
+      break
+    }
+    const disposables = []
+    try {
+      const gridImageTensor = await captureWebcam()
+      disposables.push(gridImageTensor)
+      const result = await processImage(gridImageTensor, elements.canvasElement)
+      if (result) {
+        stopWebcam()
+        break
+      }
+    } finally {
+      disposables.forEach(disposable => disposable.dispose())
+    }
+    log.info('[onVideoClick] waiting for next frame...')
+    await tf.nextFrame()
+  }
+  log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
 }
 
 const onSudokuClick = () =>

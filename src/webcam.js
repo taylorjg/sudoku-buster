@@ -17,9 +17,14 @@ export const startWebcam = async videoElement => {
   webcam = await tf.data.webcam(videoElement, webcamConfig) //eslint-disable-line
 }
 
+export const stopWebcam = () => {
+  webcam.stop()
+  webcam = undefined
+}
+
 export const captureWebcam = async () => {
   const gridImageTensor = await webcam.capture()
-  webcam.stop()
-  webcam = undefined // eslint-disable-line
+  // webcam.stop()
+  // webcam = undefined // eslint-disable-line
   return gridImageTensor
 }
