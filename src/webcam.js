@@ -18,13 +18,11 @@ export const startWebcam = async videoElement => {
 }
 
 export const stopWebcam = () => {
-  webcam.stop()
-  webcam = undefined
+  if (webcam) {
+    webcam.stop()
+    webcam = undefined
+  }
 }
 
-export const captureWebcam = async () => {
-  const gridImageTensor = await webcam.capture()
-  // webcam.stop()
-  // webcam = undefined // eslint-disable-line
-  return gridImageTensor
-}
+export const captureWebcam = () =>
+  webcam ? webcam.capture() : undefined

@@ -12,14 +12,10 @@ const processImage = async gridImageTensor => {
     log.info(`[processImage] gridImageTensor.shape: ${gridImageTensor.shape}`)
     const imageData = await I.imageTensorToImageData(gridImageTensor)
     const puzzle = await scanPuzzle(getBlanksModel(), getDigitsModel(), imageData)
-    if (!puzzle) {
-      return false
-    }
+    if (!puzzle) return false
     const initialValues = getInitialValues(puzzle)
     const solutions = solve(puzzle)
-    if (solutions.length !== 1) {
-      return false
-    }
+    if (solutions.length !== 1) return false
     UI.setDisplayMode(UI.DISPLAY_MODE_SUDOKU)
     UI.drawPuzzle(initialValues, solutions)
     return true
@@ -29,33 +25,32 @@ const processImage = async gridImageTensor => {
 }
 
 const onVideoClick = async elements => {
+
   if (isWebcamStarted()) {
     stopWebcam()
     UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
     return
-  } else {
-    await startWebcam(elements.videoElement)
-    UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
   }
-  for (; ;) {
-    if (!isWebcamStarted()) {
-      return
-    }
+
+  await startWebcam(elements.videoElement)
+  UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
+
+  while (isWebcamStarted()) {
     const disposables = []
     try {
       const gridImageTensor = await captureWebcam()
+      if (!gridImageTensor) break
       disposables.push(gridImageTensor)
       const result = await processImage(gridImageTensor)
-      if (result) {
-        stopWebcam()
-        break
-      }
+      if (result) break
     } finally {
       disposables.forEach(disposable => disposable.dispose())
     }
     log.info('[onVideoClick] waiting for next frame...')
     await tf.nextFrame()
   }
+
+  stopWebcam()
   log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
 }
 
