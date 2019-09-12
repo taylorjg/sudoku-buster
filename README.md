@@ -46,6 +46,9 @@ I clearly still have some work to do to reduce the size of these resources.
 
 # Links
 
+* For the OpenCV approach to finding the bounding box, I borrowed heavily from:
+  * [Emaraic - Real-time Sudoku Solver](http://emaraic.com/blog/realtime-sudoku-solver)
+  * [tahaemara/real-time-sudoku-solver: Real-time Sudoku Solver using Opencv and Deeplearning4j](https://github.com/tahaemara/real-time-sudoku-solver)
 * [sudoku-scanner](https://github.com/taylorjg/sudoku-scanner)
 * [Knuth's Algorithm X](https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X)
 * [Dancing Links](https://en.wikipedia.org/wiki/Dancing_Links)

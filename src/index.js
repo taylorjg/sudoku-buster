@@ -6,6 +6,7 @@ import { loadModels, getBlanksModel, getDigitsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
 import { scanPuzzle } from './scan'
 import { getInitialValues, solve } from './solve'
+import { showErrorPanel } from './errorPanel'
 
 const processImage = async gridImageTensor => {
   try {
@@ -32,8 +33,14 @@ const onVideoClick = async elements => {
     return
   }
 
-  await startWebcam(elements.videoElement)
-  UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
+  try {
+    await startWebcam(elements.videoElement)
+    UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
+  } catch (error) {
+    log.error(`[onVideoClick] ${error.message}`)
+    showErrorPanel(error)
+    return
+  }
 
   while (isWebcamStarted()) {
     const disposables = []
