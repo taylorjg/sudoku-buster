@@ -21,7 +21,7 @@ export const findBoundingBox = async gridImageTensor => {
 
   const contours = new cv.MatVector()
   const hierarchy = new cv.Mat()
-  const mode = cv.RETR_LIST
+  const mode = cv.RETR_EXTERNAL
   const method = cv.CHAIN_APPROX_SIMPLE
   cv.findContours(matBinary, contours, hierarchy, mode, method)
   const numContours = contours.size()
