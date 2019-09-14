@@ -3,6 +3,7 @@ import chaiAlmost from 'chai-almost'
 import * as tf from '@tensorflow/tfjs'
 import { findBoundingBox } from '../src/findBoundingBox.js'
 import { scanPuzzle } from '../src/scan'
+import { satisfiesAllConstraints, digitPredictionsToPuzzle } from '../src/puzzle'
 import * as I from '../src/image'
 
 const { expect } = chai
@@ -44,7 +45,9 @@ describe('sudoku-buster tests', () => {
 
   it('scanPuzzle', async () => {
     const numTensorsBefore = tf.memory().numTensors
-    const actual = await scanPuzzle(cellsModel, imageData)
+    const digitPredictions = await scanPuzzle(cellsModel, imageData)
+    expect(satisfiesAllConstraints(digitPredictions)).to.be.true
+    const actual = digitPredictionsToPuzzle(digitPredictions)
     const expected = [
       "28  3  45",
       "5 4   6 2",

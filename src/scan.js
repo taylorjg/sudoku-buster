@@ -2,7 +2,6 @@ import log from 'loglevel'
 import * as C from './constants'
 import * as D from './data'
 import * as I from './image'
-import * as P from './puzzle'
 import { findBoundingBox } from './findBoundingBox'
 
 const findAndCheckBoundingBox = async gridImageTensor => {
@@ -40,8 +39,7 @@ export const scanPuzzle = async (cellsModel, imageData) => {
     const gridImageTensor = I.normaliseGridImage(imageData)
     disposables.push(gridImageTensor)
     const boundingBox = await findAndCheckBoundingBox(gridImageTensor)
-    const digitPredictions = await predictDigits(disposables, cellsModel, gridImageTensor, boundingBox)
-    return P.digitPredictionsToInitialValues(digitPredictions)
+    return predictDigits(disposables, cellsModel, gridImageTensor, boundingBox)
   } finally {
     disposables.forEach(disposable => disposable.dispose())
   }

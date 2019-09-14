@@ -5,14 +5,16 @@ import * as UI from './ui'
 import { loadModels, getCellsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
 import { scanPuzzle } from './scan'
+import { satisfiesAllConstraints, digitPredictionsToPuzzle} from './puzzle'
 import { getInitialValues, solve } from './solve'
 import { showErrorPanel } from './errorPanel'
 
 const processImage = async gridImageTensor => {
   try {
     const imageData = await I.imageTensorToImageData(gridImageTensor)
-    const puzzle = await scanPuzzle(getCellsModel(), imageData)
-    if (!puzzle) return false
+    const digitPredictions = await scanPuzzle(getCellsModel(), imageData)
+    if (!satisfiesAllConstraints(digitPredictions)) return false
+    const puzzle = digitPredictionsToPuzzle(digitPredictions)
     const initialValues = getInitialValues(puzzle)
     const solutions = solve(puzzle)
     if (solutions.length !== 1) return false
