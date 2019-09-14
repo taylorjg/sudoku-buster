@@ -1,6 +1,6 @@
 {
   "name": "sudoku-buster",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "description": "Web app to scan and solve a Sudoku puzzle",
   "scripts": {
     "eslint": "eslint .",
@@ -16,6 +16,7 @@
     "@tensorflow/tfjs": "^1.2.9",
     "dlxlib": "^2.0.0-alpha.2",
     "express": "^4.17.1",
+    "heroku-ssl-redirect": "0.0.4",
     "loglevel": "^1.6.4",
     "ramda": "^0.26.1"
   },
