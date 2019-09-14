@@ -30,11 +30,9 @@ export const setDisplayMode = displayMode => {
   showOrHide(sudokuElement, DISPLAY_MODE_SUDOKU)
 }
 
-export const drawPuzzle = (initialValues, solutions) => {
+export const drawPuzzle = (initialValues, solution) => {
   drawInitialValues(sudokuElement, initialValues)
-  if (solutions.length === 1) {
-    drawSolution(sudokuElement, solutions[0])
-  }
+  drawSolution(sudokuElement, solution)
 }
 
 export const setVideoClickHandler = handler => {

@@ -19,24 +19,17 @@ describe('sudoku-buster tests', () => {
 
   let gridImageTensor = undefined
   let imageData = undefined
-  let blanksModel = undefined
-  let digitsModel = undefined
+  let cellsModel = undefined
 
   before(async () => {
     gridImageTensor = await I.loadImage('/rawImages/00044.png')
     imageData = await I.imageTensorToImageData(gridImageTensor)
-    const models = await Promise.all([
-      tf.loadLayersModel(`${location.origin}/models/blanks/model.json`),
-      tf.loadLayersModel(`${location.origin}/models/digits/model.json`)
-    ])
-    blanksModel = models[0]
-    digitsModel = models[1]
+    cellsModel = await tf.loadLayersModel(`${location.origin}/models/cells/model.json`)
   })
 
   after(() => {
     gridImageTensor.dispose()
-    blanksModel.dispose()
-    digitsModel.dispose()
+    cellsModel.dispose()
   })
 
   it('findBoundingBox', async () => {
@@ -51,7 +44,7 @@ describe('sudoku-buster tests', () => {
 
   it('scanPuzzle', async () => {
     const numTensorsBefore = tf.memory().numTensors
-    const actual = await scanPuzzle(blanksModel, digitsModel, imageData)
+    const actual = await scanPuzzle(cellsModel, imageData)
     const expected = [
       "28  3  45",
       "5 4   6 2",

@@ -2,7 +2,7 @@ import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
 import * as I from './image'
 import * as UI from './ui'
-import { loadModels, getBlanksModel, getDigitsModel } from './models'
+import { loadModels, getCellsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
 import { scanPuzzle } from './scan'
 import { getInitialValues, solve } from './solve'
@@ -10,15 +10,14 @@ import { showErrorPanel } from './errorPanel'
 
 const processImage = async gridImageTensor => {
   try {
-    log.info(`[processImage] gridImageTensor.shape: ${gridImageTensor.shape}`)
     const imageData = await I.imageTensorToImageData(gridImageTensor)
-    const puzzle = await scanPuzzle(getBlanksModel(), getDigitsModel(), imageData)
+    const puzzle = await scanPuzzle(getCellsModel(), imageData)
     if (!puzzle) return false
     const initialValues = getInitialValues(puzzle)
     const solutions = solve(puzzle)
     if (solutions.length !== 1) return false
     UI.setDisplayMode(UI.DISPLAY_MODE_SUDOKU)
-    UI.drawPuzzle(initialValues, solutions)
+    UI.drawPuzzle(initialValues, solutions[0])
     return true
   } catch (error) {
     return false
