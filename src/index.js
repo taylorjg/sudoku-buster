@@ -16,7 +16,7 @@ const processImage = async (gridImageTensor, svgElement) => {
     if (!satisfiesAllConstraints(digitPredictions)) return false
     const puzzle = digitPredictionsToPuzzle(digitPredictions)
     const initialValues = getInitialValues(puzzle)
-    const solutions = solve(puzzle)
+    const solutions = solve(puzzle, { numSolutions: 1 })
     if (solutions.length !== 1) return false
     UI.setDisplayMode(UI.DISPLAY_MODE_SOLUTION)
     UI.drawPuzzle(initialValues, solutions[0])
