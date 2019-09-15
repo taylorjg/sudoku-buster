@@ -8,11 +8,15 @@ const findAndCheckBoundingBox = async gridImageTensor => {
   const boundingBox = await findBoundingBox(gridImageTensor)
   log.info(`[findAndCheckBoundingBox] boundingBox: ${JSON.stringify(boundingBox)}`)
   if (!boundingBox) {
-    throw new Error('Failed to find bounding box.')
+    const error = new Error('Failed to find bounding box.')
+    error.isScanException = true
+    throw error
   }
   const [, , w, h] = boundingBox
   if (w < C.GRID_IMAGE_WIDTH / 2 || h < C.GRID_IMAGE_HEIGHT / 2) {
-    throw new Error(`Bounding box is too small, ${JSON.stringify(boundingBox)}.`)
+    const error = new Error(`Bounding box is too small, ${JSON.stringify(boundingBox)}.`)
+    error.isScanException = true
+    throw error
   }
   return boundingBox
 }

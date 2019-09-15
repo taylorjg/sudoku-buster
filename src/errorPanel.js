@@ -1,4 +1,5 @@
 export const showErrorPanel = errorMessage => {
+  hideErrorPanel()
   const parentElement = document.querySelector('body')
   const template = document.getElementById('error-panel-template')
   const clone = document.importNode(template.content, true)

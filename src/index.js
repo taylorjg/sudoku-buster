@@ -5,9 +5,9 @@ import * as UI from './ui'
 import { loadModels, getCellsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
 import { scanPuzzle } from './scan'
-import { satisfiesAllConstraints, digitPredictionsToPuzzle} from './puzzle'
+import { satisfiesAllConstraints, digitPredictionsToPuzzle } from './puzzle'
 import { getInitialValues, solve } from './solve'
-import { showErrorPanel } from './errorPanel'
+import { showErrorPanel, hideErrorPanel } from './errorPanel'
 
 const processImage = async gridImageTensor => {
   try {
@@ -18,10 +18,14 @@ const processImage = async gridImageTensor => {
     const initialValues = getInitialValues(puzzle)
     const solutions = solve(puzzle)
     if (solutions.length !== 1) return false
-    UI.setDisplayMode(UI.DISPLAY_MODE_SUDOKU)
+    UI.setDisplayMode(UI.DISPLAY_MODE_SOLUTION)
     UI.drawPuzzle(initialValues, solutions[0])
     return true
   } catch (error) {
+    log.error(`[processImage] ${error.message}`)
+    if (!error.isScanException) {
+      showErrorPanel(error.message)
+    }
     return false
   }
 }
@@ -35,6 +39,7 @@ const onVideoClick = async elements => {
   }
 
   try {
+    hideErrorPanel()
     await startWebcam(elements.videoElement)
     UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
   } catch (error) {
@@ -59,6 +64,7 @@ const onVideoClick = async elements => {
   }
 
   stopWebcam()
+
   log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
 }
 
