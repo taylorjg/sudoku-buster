@@ -48,7 +48,7 @@ export const findBoundingBox = async (gridImageTensor, svgElement) => {
     // the best contour tends to be just slightly too big.
     const boundingBox = CALC.inset(x, y, width, height, 2, 2)
 
-    SVG.drawboundingBox(svgElement, boundingBox, 'blue')
+    // SVG.drawboundingBox(svgElement, boundingBox, 'blue')
 
     return boundingBox
   } finally {
