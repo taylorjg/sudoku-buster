@@ -9,10 +9,10 @@ import { satisfiesAllConstraints, digitPredictionsToPuzzle } from './puzzle'
 import { getInitialValues, solve } from './solve'
 import { showErrorPanel, hideErrorPanel } from './errorPanel'
 
-const processImage = async gridImageTensor => {
+const processImage = async (gridImageTensor, svgElement) => {
   try {
     const imageData = await I.imageTensorToImageData(gridImageTensor)
-    const digitPredictions = await scanPuzzle(getCellsModel(), imageData)
+    const digitPredictions = await scanPuzzle(getCellsModel(), imageData, svgElement)
     if (!satisfiesAllConstraints(digitPredictions)) return false
     const puzzle = digitPredictionsToPuzzle(digitPredictions)
     const initialValues = getInitialValues(puzzle)
@@ -54,7 +54,7 @@ const onVideoClick = async elements => {
       const gridImageTensor = await captureWebcam()
       if (!gridImageTensor) break
       disposables.push(gridImageTensor)
-      const result = await processImage(gridImageTensor)
+      const result = await processImage(gridImageTensor, elements.videoOverlayGuidesElement)
       if (result) break
     } finally {
       disposables.forEach(disposable => disposable.dispose())

@@ -4,8 +4,8 @@ import * as D from './data'
 import * as I from './image'
 import { findBoundingBox } from './findBoundingBox'
 
-const findAndCheckBoundingBox = async gridImageTensor => {
-  const boundingBox = await findBoundingBox(gridImageTensor)
+const findAndCheckBoundingBox = async (gridImageTensor, svgElement) => {
+  const boundingBox = await findBoundingBox(gridImageTensor, svgElement)
   log.info(`[findAndCheckBoundingBox] boundingBox: ${JSON.stringify(boundingBox)}`)
   if (!boundingBox) {
     const error = new Error('Failed to find bounding box.')
@@ -37,12 +37,12 @@ const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingB
   return indexedDigitPredictions
 }
 
-export const scanPuzzle = async (cellsModel, imageData) => {
+export const scanPuzzle = async (cellsModel, imageData, svgElement) => {
   const disposables = []
   try {
     const gridImageTensor = I.normaliseGridImage(imageData)
     disposables.push(gridImageTensor)
-    const boundingBox = await findAndCheckBoundingBox(gridImageTensor)
+    const boundingBox = await findAndCheckBoundingBox(gridImageTensor, svgElement)
     return predictDigits(disposables, cellsModel, gridImageTensor, boundingBox)
   } finally {
     disposables.forEach(disposable => disposable.dispose())

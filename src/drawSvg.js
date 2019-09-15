@@ -1,4 +1,5 @@
 import * as R from 'ramda'
+import * as C from './constants'
 
 const GRID_LINE_THIN_WIDTH = 1
 const GRID_LINE_THICK_WIDTH = GRID_LINE_THIN_WIDTH * 4
@@ -81,4 +82,25 @@ export const drawInitialValues = (svgElement, initialValues) => {
 export const drawSolution = (svgElement, solution) => {
   const calculatedValues = solution.filter(row => !row.isInitialValue)
   calculatedValues.forEach(row => drawValue(svgElement, row))
+}
+
+export const drawboundingBox = (svgElement, boundingBox, colour) => {
+  const oldRect = svgElement.querySelector('.bounding-box')
+  if (oldRect) {
+    oldRect.parentNode.removeChild(oldRect)
+  }
+  const [x, y, width, height] = boundingBox
+  const scaleX = 100 / C.GRID_IMAGE_WIDTH
+  const scaleY = 100 / C.GRID_IMAGE_HEIGHT
+  const rect = createSvgElement('rect', {
+    'class': 'bounding-box',
+    stroke: colour,
+    'stroke-width': 1 * scaleX,
+    fill: 'none',
+    x: x * scaleX,
+    y: y * scaleY,
+    width: width * scaleX,
+    height: height * scaleY
+  })
+  svgElement.appendChild(rect)
 }
