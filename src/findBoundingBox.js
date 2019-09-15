@@ -41,14 +41,17 @@ export const findBoundingBox = async (gridImageTensor, svgElement) => {
       return { area, boundingRect, contour }
     })
     const sorted = R.sort(R.descend(R.prop('area')), areasAndBoundingRects)
-    console.dir(R.head(sorted))
     const { x, y, width, height } = R.head(sorted).boundingRect
 
     // I'm insetting by 2 pixels in both directions because
     // the best contour tends to be just slightly too big.
     const boundingBox = CALC.inset(x, y, width, height, 2, 2)
 
-    // SVG.drawboundingBox(svgElement, boundingBox, 'blue')
+    SVG.drawboundingBox(svgElement, boundingBox, 'red')
+
+    const contour = R.head(sorted).contour
+    const points = R.splitEvery(2, contour.data32S).map(([x, y]) => ({ x, y }))
+    SVG.drawContour(svgElement, points, 'blue')
 
     return boundingBox
   } finally {

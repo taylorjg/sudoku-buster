@@ -104,3 +104,20 @@ export const drawboundingBox = (svgElement, boundingBox, colour) => {
   })
   svgElement.appendChild(rect)
 }
+
+export const drawContour = (svgElement, points, colour) => {
+  const oldPolyline = svgElement.querySelector('.contour')
+  if (oldPolyline) {
+    oldPolyline.parentNode.removeChild(oldPolyline)
+  }
+  const scaleX = 100 / C.GRID_IMAGE_WIDTH
+  const scaleY = 100 / C.GRID_IMAGE_HEIGHT
+  const polyline = createSvgElement('polyline', {
+    'class': 'contour',
+    stroke: colour,
+    'stroke-width': 1 * scaleX,
+    points: points.map(({ x, y }) => `${x * scaleX},${y * scaleY}`).join(' '),
+    fill: 'none'
+  })
+  svgElement.appendChild(polyline)
+}
