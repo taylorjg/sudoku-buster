@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
+import * as I from './image'
 import * as UI from './ui'
 import { loadModels, getCellsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
@@ -10,7 +11,8 @@ import { showErrorPanel, hideErrorPanel } from './errorPanel'
 
 const processImage = async gridImageTensor => {
   try {
-    const digitPredictions = await scanPuzzle(getCellsModel(), gridImageTensor)
+    const imageData = await I.imageTensorToImageData(gridImageTensor)
+    const digitPredictions = await scanPuzzle(getCellsModel(), imageData)
     if (!satisfiesAllConstraints(digitPredictions)) return false
     const puzzle = digitPredictionsToPuzzle(digitPredictions)
     const initialValues = getInitialValues(puzzle)
@@ -52,10 +54,7 @@ const onVideoClick = async elements => {
       const gridImageTensor = await captureWebcam()
       if (!gridImageTensor) break
       disposables.push(gridImageTensor)
-      log.info(`[onVideoClick] gridImageTensor.shape: ${gridImageTensor.shape}`)
-      const gridImageTensor2 = gridImageTensor.toInt()
-      disposables.push(gridImageTensor2)
-      const result = await processImage(gridImageTensor2)
+      const result = await processImage(gridImageTensor)
       if (result) break
     } finally {
       disposables.forEach(disposable => disposable.dispose())
