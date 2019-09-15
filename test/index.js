@@ -4,6 +4,7 @@ import * as tf from '@tensorflow/tfjs'
 import { findBoundingBox } from '../src/findBoundingBox.js'
 import { scanPuzzle } from '../src/scan'
 import { satisfiesAllConstraints, digitPredictionsToPuzzle } from '../src/puzzle'
+import * as C from '../src/constants'
 import * as I from '../src/image'
 
 const { expect } = chai
@@ -18,26 +19,29 @@ mocha
 
 describe('sudoku-buster tests', () => {
 
-  let gridImageTensor = undefined
+  let gridImageTensorRaw = undefined
+  let gridImageTensorResized = undefined
   let imageData = undefined
+  let imageDataGreyscale = undefined
   let cellsModel = undefined
 
   before(async () => {
-    gridImageTensor = await I.loadImage('/rawImages/00044.png')
-    imageData = await I.imageTensorToImageData(gridImageTensor)
+    gridImageTensorRaw = await I.loadImage('/rawImages/00044.png')
+    gridImageTensorResized = tf.image.resizeBilinear(gridImageTensorRaw, [C.GRID_IMAGE_HEIGHT, C.GRID_IMAGE_WIDTH])
+    imageData = await I.imageTensorToImageData(gridImageTensorResized)
+    imageDataGreyscale = I.convertToGreyscale(imageData)
     cellsModel = await tf.loadLayersModel(`${location.origin}/models/cells/model.json`)
   })
 
   after(() => {
-    gridImageTensor.dispose()
+    gridImageTensorRaw.dispose()
+    gridImageTensorResized.dispose()
     cellsModel.dispose()
   })
 
   describe('findBoundingBox', () => {
     it('should find the correct bounding box', async () => {
-      const gridImageTensorNormalised = I.normaliseGridImage(imageData)
-      const [x, y, w, h] = await findBoundingBox(gridImageTensorNormalised)
-      gridImageTensorNormalised.dispose()
+      const [x, y, w, h] = await findBoundingBox(imageDataGreyscale)
       expect(x).to.be.almost(21, 3)
       expect(y).to.be.almost(30, 3)
       expect(w).to.be.almost(184, 3)
@@ -48,7 +52,7 @@ describe('sudoku-buster tests', () => {
   describe('scanPuzzle', () => {
 
     it('should predict the correct initial values', async () => {
-      const digitPredictions = await scanPuzzle(cellsModel, imageData)
+      const digitPredictions = await scanPuzzle(cellsModel, gridImageTensorResized)
       const actual = digitPredictionsToPuzzle(digitPredictions)
       const expected = [
         "28  3  45",
@@ -66,7 +70,7 @@ describe('sudoku-buster tests', () => {
 
     it('should not leak any tensors', async () => {
       const numTensorsBefore = tf.memory().numTensors
-      await scanPuzzle(cellsModel, imageData)
+      await scanPuzzle(cellsModel, gridImageTensorResized)
       const numTensorsAfter = tf.memory().numTensors
       expect(numTensorsAfter).to.equal(numTensorsBefore)
     })
@@ -79,7 +83,7 @@ describe('sudoku-buster tests', () => {
     })
 
     it('should succeed given the result of a successful scan', async () => {
-      const digitPredictions = await scanPuzzle(cellsModel, imageData)
+      const digitPredictions = await scanPuzzle(cellsModel, gridImageTensorResized)
       expect(satisfiesAllConstraints(digitPredictions)).to.be.true
     })
 

@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
-import log from 'loglevel'
 import * as R from 'ramda'
+import log from 'loglevel'
 import * as C from './constants'
 
 // key: url, value: tf.tensor3D
@@ -48,10 +48,3 @@ export const convertToGreyscale = imageData => {
   }
   return new ImageData(array, width, height)
 }
-
-export const normaliseGridImage = imageData =>
-  tf.tidy(() => {
-    const imageDataGreyscale = convertToGreyscale(imageData)
-    const imageTensorGreyscale = tf.browser.fromPixels(imageDataGreyscale, C.GRID_IMAGE_CHANNELS)
-    return tf.image.resizeBilinear(imageTensorGreyscale, [C.GRID_IMAGE_HEIGHT, C.GRID_IMAGE_WIDTH])
-  })

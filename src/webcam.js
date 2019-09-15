@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
+import * as C from './constants'
 
 let webcam = undefined
 
@@ -32,8 +33,10 @@ export const startWebcam = async videoElement => {
   log.info(`[startWebcam] width: ${width}; height: ${height}`)
   const webcamConfig = {
     facingMode: FACING_MODE,
-    resizeWidth: width,
-    resizeHeight: height
+    // resizeWidth: width,
+    // resizeHeight: height
+    resizeWidth: C.GRID_IMAGE_WIDTH,
+    resizeHeight: C.GRID_IMAGE_HEIGHT
   }
   videoElement.width = width
   videoElement.height = height

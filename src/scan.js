@@ -1,11 +1,12 @@
+import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
 import * as C from './constants'
 import * as D from './data'
 import * as I from './image'
 import { findBoundingBox } from './findBoundingBox'
 
-const findAndCheckBoundingBox = async gridImageTensor => {
-  const boundingBox = await findBoundingBox(gridImageTensor)
+const findAndCheckBoundingBox = async imageDataGreyscale => {
+  const boundingBox = await findBoundingBox(imageDataGreyscale)
   log.info(`[findAndCheckBoundingBox] boundingBox: ${JSON.stringify(boundingBox)}`)
   if (!boundingBox) {
     const error = new Error('Failed to find bounding box.')
@@ -37,12 +38,14 @@ const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingB
   return indexedDigitPredictions
 }
 
-export const scanPuzzle = async (cellsModel, imageData) => {
+export const scanPuzzle = async (cellsModel, gridImageTensor) => {
   const disposables = []
   try {
-    const gridImageTensor = I.normaliseGridImage(imageData)
-    disposables.push(gridImageTensor)
-    const boundingBox = await findAndCheckBoundingBox(gridImageTensor)
+    const imageData = await I.imageTensorToImageData(gridImageTensor)
+    const imageDataGreyscale = I.convertToGreyscale(imageData)
+    const gridImageTensorGreyscale = tf.browser.fromPixels(imageDataGreyscale, C.GRID_IMAGE_CHANNELS)
+    disposables.push(gridImageTensorGreyscale)
+    const boundingBox = await findAndCheckBoundingBox(imageDataGreyscale)
     return predictDigits(disposables, cellsModel, gridImageTensor, boundingBox)
   } finally {
     disposables.forEach(disposable => disposable.dispose())
