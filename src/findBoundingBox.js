@@ -3,7 +3,7 @@ import * as R from 'ramda'
 import * as CALC from './calculations'
 import * as SVG from './drawSvg'
 
-export const findBoundingBox = async (gridImageTensor, svgElement) => {
+export const findBoundingBox = async (gridImageTensor, svgElement, options = {}) => {
   const itemsToDelete = []
   try {
     const tfCanvas = document.createElement('canvas')
@@ -47,11 +47,15 @@ export const findBoundingBox = async (gridImageTensor, svgElement) => {
     // the best contour tends to be just slightly too big.
     const boundingBox = CALC.inset(x, y, width, height, 2, 2)
 
-    SVG.drawboundingBox(svgElement, boundingBox, 'red')
+    if (options.drawBoundingBox) {
+      SVG.drawBoundingBox(svgElement, boundingBox, 'blue')
+    }
 
-    const contour = R.head(sorted).contour
-    const points = R.splitEvery(2, contour.data32S).map(([x, y]) => ({ x, y }))
-    SVG.drawContour(svgElement, points, 'blue')
+    if (options.drawContour) {
+      const contour = R.head(sorted).contour
+      const points = R.splitEvery(2, contour.data32S).map(([x, y]) => ({ x, y }))
+      SVG.drawContour(svgElement, points, 'red')
+    }
 
     return boundingBox
   } finally {

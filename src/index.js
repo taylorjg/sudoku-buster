@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
+import queryString from 'query-string'
 import * as I from './image'
 import * as UI from './ui'
 import { loadModels, getCellsModel } from './models'
@@ -9,10 +10,17 @@ import { satisfiesAllConstraints, digitPredictionsToPuzzle } from './puzzle'
 import { getInitialValues, solve } from './solve'
 import { showErrorPanel, hideErrorPanel } from './errorPanel'
 
+const queryParams = queryString.parse(location.search)
+
+const scanPuzzleOptions = {
+  drawBoundingBox: queryParams['bb'] !== undefined,
+  drawContour: queryParams['c'] !== undefined
+}
+
 const processImage = async (gridImageTensor, svgElement) => {
   try {
     const imageData = await I.imageTensorToImageData(gridImageTensor)
-    const digitPredictions = await scanPuzzle(getCellsModel(), imageData, svgElement)
+    const digitPredictions = await scanPuzzle(getCellsModel(), imageData, svgElement, scanPuzzleOptions)
     if (!satisfiesAllConstraints(digitPredictions)) return false
     const puzzle = digitPredictionsToPuzzle(digitPredictions)
     const initialValues = getInitialValues(puzzle)

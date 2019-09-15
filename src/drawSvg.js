@@ -84,7 +84,7 @@ export const drawSolution = (svgElement, solution) => {
   calculatedValues.forEach(row => drawValue(svgElement, row))
 }
 
-export const drawboundingBox = (svgElement, boundingBox, colour) => {
+export const drawBoundingBox = (svgElement, boundingBox, colour) => {
   const oldRect = svgElement.querySelector('.bounding-box')
   if (oldRect) {
     oldRect.parentNode.removeChild(oldRect)
