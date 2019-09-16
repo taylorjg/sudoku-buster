@@ -17,41 +17,25 @@ import * as SVG from './drawSvg'
 export const findBoundingBox = async (gridImageTensor, svgElement, options = {}) => {
   const itemsToDelete = []
   try {
-    const tfCanvas = document.createElement('canvas')
-    await tf.browser.toPixels(gridImageTensor, tfCanvas)
-    const matInitial = cv.imread(tfCanvas)
+    const canvas = document.createElement('canvas')
+    await tf.browser.toPixels(gridImageTensor, canvas)
+    const matInitial = cv.imread(canvas)
     itemsToDelete.push(matInitial)
 
-    const matGrey = new cv.Mat(matInitial.size(), cv.CV_8UC1)
+    const matGrey = new cv.Mat()
     itemsToDelete.push(matGrey)
-    // Maybe use cv.COLOR_RGBA2GRAY if/when we obtain
-    // 'matInitial' via cv.matFromImageData() ?
-    // https://docs.opencv.org/master/df/d24/tutorial_js_image_display.html
-    //    Because canvas only support 8-bit RGBA image with continuous storage,
-    //    the cv.Mat type is cv.CV_8UC4. It is different from native OpenCV
-    //    because images returned and shown by the native imread and imshow
-    //    have the channels stored in BGR order.
-    // Conduct some experiments:
-    // - take ImageData where all pixels are #F00 (red)
-    // - convert to cv.Mat
-    // - convert back to ImageData
-    // - repeat for #00F (blue)
-    // - mat = cv.matFromImageData(imageData1)
-    // - console.dir(mat)
-    // - observe contents of mat.data
-    // - array = new Uint8ClampedArray(mat.data)
-    // - imageData2 = new ImageData(array, mat.cols, mat.rows)
-    cv.cvtColor(matInitial, matGrey, cv.COLOR_BGR2GRAY)
+    // cv.CV_8UC4 => cv.CV_8UC1
+    cv.cvtColor(matInitial, matGrey, cv.COLOR_RGBA2GRAY)
 
     // const imageData = matToImageData(itemsToDelete, matGrey)
 
-    const matBlur = new cv.Mat(matInitial.size(), cv.CV_8UC1)
+    const matBlur = new cv.Mat()
     itemsToDelete.push(matBlur)
     const ksize = new cv.Size(5, 5)
     const sigmaX = 0
     cv.GaussianBlur(matGrey, matBlur, ksize, sigmaX)
 
-    const matBinary = new cv.Mat(matInitial.size(), cv.CV_8UC1)
+    const matBinary = new cv.Mat()
     itemsToDelete.push(matBinary)
     cv.adaptiveThreshold(matBlur, matBinary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 19, 3)
 
