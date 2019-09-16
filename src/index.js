@@ -17,17 +17,35 @@ const scanPuzzleOptions = {
   drawContour: queryParams['c'] !== undefined
 }
 
+const logPerformanceMetrics = () => {
+  const marks = performance.getEntriesByType('mark')
+  if (marks.length === 0) return
+  const firstStartTime = marks[0].startTime
+  const transformedMarks = marks
+    .map(({ name, startTime }, index) => ({
+      name,
+      sinceFirstStartTime: (startTime - firstStartTime).toFixed(2),
+      sincePreviousStartTime: (index > 0 ? startTime - marks[index - 1].startTime : 0).toFixed(2)
+    }))
+  transformedMarks.forEach(mark => log.info(JSON.stringify(mark)))
+}
+
 const processImage = async (gridImageTensor, svgElement) => {
   try {
     const imageData = await I.imageTensorToImageData(gridImageTensor)
+    performance.mark('after imageTensorToImageData')
     const digitPredictions = await scanPuzzle(getCellsModel(), imageData, svgElement, scanPuzzleOptions)
+    performance.mark('after scanPuzzle')
     if (!satisfiesAllConstraints(digitPredictions)) return false
+    performance.mark('after satisfiesAllConstraints')
     const puzzle = digitPredictionsToPuzzle(digitPredictions)
     const initialValues = getInitialValues(puzzle)
     const solutions = solve(puzzle, { numSolutions: 1 })
+    performance.mark('after solve')
     if (solutions.length !== 1) return false
     UI.setDisplayMode(UI.DISPLAY_MODE_SOLUTION)
     UI.drawPuzzle(initialValues, solutions[0])
+    performance.mark('after drawPuzzle')
     return true
   } catch (error) {
     log.error(`[processImage] ${error.message}`)
@@ -59,13 +77,16 @@ const onVideoClick = async elements => {
   while (isWebcamStarted()) {
     const disposables = []
     try {
+      performance.clearMarks()
       const gridImageTensor = await captureWebcam()
+      performance.mark('after captureWebcam')
       if (!gridImageTensor) break
       disposables.push(gridImageTensor)
       const result = await processImage(gridImageTensor, elements.videoOverlayGuidesElement)
       if (result) break
     } finally {
       disposables.forEach(disposable => disposable.dispose())
+      logPerformanceMetrics()
     }
     log.info('[onVideoClick] waiting for next frame...')
     await tf.nextFrame()

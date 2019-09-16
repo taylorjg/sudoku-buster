@@ -1,6 +1,6 @@
 {
   "name": "sudoku-buster",
-  "version": "0.0.45",
+  "version": "0.0.46",
   "description": "Web app to scan and solve a Sudoku puzzle",
   "scripts": {
     "eslint": "eslint .",

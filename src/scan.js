@@ -26,7 +26,7 @@ const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingB
     gridImageTensor,
     boundingBox)
   disposables.push(gridSquareImageTensors)
-  const batchSize = gridSquareImageTensors.shape[0]
+  const batchSize = 9 // 81
   const outputs = cellsModel.predict(gridSquareImageTensors, { batchSize })
   disposables.push(outputs)
   const outputsArgMax = outputs.argMax(1)
@@ -43,8 +43,12 @@ export const scanPuzzle = async (cellsModel, imageData, svgElement, options) => 
   try {
     const gridImageTensor = I.normaliseGridImage(imageData)
     disposables.push(gridImageTensor)
+    performance.mark('after normaliseGridImage')
     const boundingBox = await findAndCheckBoundingBox(gridImageTensor, svgElement, options)
-    return predictDigits(disposables, cellsModel, gridImageTensor, boundingBox)
+    performance.mark('after findAndCheckBoundingBox')
+    const indexedDigitPredictions = await predictDigits(disposables, cellsModel, gridImageTensor, boundingBox)
+    performance.mark('after predictDigits')
+    return indexedDigitPredictions
   } finally {
     disposables.forEach(disposable => disposable.dispose())
   }

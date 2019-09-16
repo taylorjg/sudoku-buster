@@ -35,8 +35,6 @@ const setsOfBoxIndices =
       R.range(0, 3)),
     R.range(0, 3))
 
-console.dir(setsOfBoxIndices)
-
 const validateIndices = digitPredictions => indices => {
   const digits = digitPredictions
     .filter(({ index }) => indices.includes(index))
