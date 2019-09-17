@@ -32,9 +32,7 @@ const logPerformanceMetrics = () => {
 
 const processImage = async (gridImageTensor, svgElement) => {
   try {
-    const imageData = await I.imageTensorToImageData(gridImageTensor)
-    performance.mark('after imageTensorToImageData')
-    const digitPredictions = await scanPuzzle(getCellsModel(), imageData, svgElement, scanPuzzleOptions)
+    const digitPredictions = await scanPuzzle(getCellsModel(), gridImageTensor, svgElement, scanPuzzleOptions)
     performance.mark('after scanPuzzle')
     if (!satisfiesAllConstraints(digitPredictions)) return false
     performance.mark('after satisfiesAllConstraints')

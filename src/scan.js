@@ -4,21 +4,22 @@ import * as D from './data'
 import * as I from './image'
 import { findBoundingBox } from './findBoundingBox'
 
-const findAndCheckBoundingBox = async (gridImageTensor, svgElement, options) => {
-  const boundingBox = await findBoundingBox(gridImageTensor, svgElement, options)
-  log.info(`[findAndCheckBoundingBox] boundingBox: ${JSON.stringify(boundingBox)}`)
-  if (!boundingBox) {
+const findAndCheckBoundingBox = async (imageData, svgElement, options) => {
+  const result = await findBoundingBox(imageData, svgElement, options)
+  if (!result) {
     const error = new Error('Failed to find bounding box.')
     error.isScanException = true
     throw error
   }
+  const { boundingBox } = result
+  log.info(`[findAndCheckBoundingBox] boundingBox: ${JSON.stringify(boundingBox)}`)
   const [, , w, h] = boundingBox
   if (w < C.GRID_IMAGE_WIDTH / 2 || h < C.GRID_IMAGE_HEIGHT / 2) {
     const error = new Error(`Bounding box is too small, ${JSON.stringify(boundingBox)}.`)
     error.isScanException = true
     throw error
   }
-  return boundingBox
+  return result
 }
 
 const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingBox) => {
@@ -38,15 +39,17 @@ const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingB
   return indexedDigitPredictions
 }
 
-export const scanPuzzle = async (cellsModel, imageData, svgElement, options) => {
+export const scanPuzzle = async (cellsModel, imageTensor, svgElement, options) => {
   const disposables = []
   try {
-    const gridImageTensor = I.normaliseGridImage(imageData)
-    disposables.push(gridImageTensor)
-    performance.mark('after normaliseGridImage')
-    const boundingBox = await findAndCheckBoundingBox(gridImageTensor, svgElement, options)
+    const imageData = await I.imageTensorToImageData(imageTensor)
+    performance.mark('after imageTensorToImageData')
+    const { boundingBox, imageDataNormalised } = await findAndCheckBoundingBox(imageData, svgElement, options)
     performance.mark('after findAndCheckBoundingBox')
-    const indexedDigitPredictions = await predictDigits(disposables, cellsModel, gridImageTensor, boundingBox)
+    const imageTensorNormalised = I.imageDataToImageTensor(imageDataNormalised)
+    disposables.push(imageTensorNormalised)
+    performance.mark('after imageDataToImageTensor')
+    const indexedDigitPredictions = await predictDigits(disposables, cellsModel, imageTensorNormalised, boundingBox)
     performance.mark('after predictDigits')
     return indexedDigitPredictions
   } finally {

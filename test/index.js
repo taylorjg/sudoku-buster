@@ -18,26 +18,24 @@ mocha
 
 describe('sudoku-buster tests', () => {
 
-  let gridImageTensor = undefined
-  let imageData = undefined
+  let imageTensor = undefined
   let cellsModel = undefined
 
   before(async () => {
-    gridImageTensor = await I.loadImage('/rawImages/00044.png')
-    imageData = await I.imageTensorToImageData(gridImageTensor)
+    imageTensor = await I.loadImage('/rawImages/00044.png')
     cellsModel = await tf.loadLayersModel(`${location.origin}/models/cells/model.json`)
   })
 
   after(() => {
-    gridImageTensor.dispose()
+    imageTensor.dispose()
     cellsModel.dispose()
   })
 
   describe('findBoundingBox', () => {
     it('should find the correct bounding box', async () => {
-      const gridImageTensorNormalised = I.normaliseGridImage(imageData)
-      const [x, y, w, h] = await findBoundingBox(gridImageTensorNormalised)
-      gridImageTensorNormalised.dispose()
+      const imageData = await I.imageTensorToImageData(imageTensor)
+      const { boundingBox } = await findBoundingBox(imageData)
+      const [x, y, w, h] = boundingBox
       expect(x).to.be.almost(21, 3)
       expect(y).to.be.almost(30, 3)
       expect(w).to.be.almost(184, 3)
@@ -48,7 +46,7 @@ describe('sudoku-buster tests', () => {
   describe('scanPuzzle', () => {
 
     it('should predict the correct initial values', async () => {
-      const digitPredictions = await scanPuzzle(cellsModel, imageData)
+      const digitPredictions = await scanPuzzle(cellsModel, imageTensor)
       const actual = digitPredictionsToPuzzle(digitPredictions)
       const expected = [
         "28  3  45",
@@ -66,7 +64,7 @@ describe('sudoku-buster tests', () => {
 
     it('should not leak any tensors', async () => {
       const numTensorsBefore = tf.memory().numTensors
-      await scanPuzzle(cellsModel, imageData)
+      await scanPuzzle(cellsModel, imageTensor)
       const numTensorsAfter = tf.memory().numTensors
       expect(numTensorsAfter).to.equal(numTensorsBefore)
     })
@@ -79,7 +77,7 @@ describe('sudoku-buster tests', () => {
     })
 
     it('should succeed given the result of a successful scan', async () => {
-      const digitPredictions = await scanPuzzle(cellsModel, imageData)
+      const digitPredictions = await scanPuzzle(cellsModel, imageTensor)
       expect(satisfiesAllConstraints(digitPredictions)).to.be.true
     })
 

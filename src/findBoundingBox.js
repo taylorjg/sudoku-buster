@@ -1,39 +1,47 @@
-import * as tf from '@tensorflow/tfjs'
 import * as R from 'ramda'
+import * as C from './constants'
 import * as CALC from './calculations'
 import * as SVG from './drawSvg'
 
 // Assumes that 'mat' is cv.CV_8UC1.
-// const matToImageData = (itemsToDelete, mat) => {
-//   const matTmp = new cv.Mat()
-//   itemsToDelete.push(matTmp)
-//   // cv.CV_8UC1 => cv.CV_8UC4
-//   cv.cvtColor(mat, matTmp, cv.COLOR_GRAY2RGBA)
-//   const array = new Uint8ClampedArray(matTmp.data)
-//   const imageData = new ImageData(array, mat.cols, mat.rows)
-//   return imageData
-// }
+const matToImageData = (itemsToDelete, mat) => {
+  const matTmp = new cv.Mat()
+  itemsToDelete.push(matTmp)
+  // cv.CV_8UC1 => cv.CV_8UC4
+  cv.cvtColor(mat, matTmp, cv.COLOR_GRAY2RGBA)
+  const array = new Uint8ClampedArray(matTmp.data)
+  const imageData = new ImageData(array, mat.cols, mat.rows)
+  return imageData
+}
 
-export const findBoundingBox = async (gridImageTensor, svgElement, options = {}) => {
+const normaliseImageData = (itemsToDelete, imageDataIn) => {
+  const matInitial = cv.matFromImageData(imageDataIn)
+  itemsToDelete.push(matInitial)
+  const matGrey = new cv.Mat()
+  itemsToDelete.push(matGrey)
+  // cv.CV_8UC4 => cv.CV_8UC1
+  cv.cvtColor(matInitial, matGrey, cv.COLOR_RGBA2GRAY)
+  const matResized = new cv.Mat()
+  itemsToDelete.push(matResized)
+  const dsize = new cv.Size(C.GRID_IMAGE_WIDTH, C.GRID_IMAGE_HEIGHT)
+  cv.resize(matGrey, matResized, dsize)
+  const imageDataOut = matToImageData(itemsToDelete, matResized)
+  return {
+    matNormalised: matResized,
+    imageDataNormalised: imageDataOut
+  }
+}
+
+export const findBoundingBox = async (imageData, svgElement, options = {}) => {
   const itemsToDelete = []
   try {
-    const canvas = document.createElement('canvas')
-    await tf.browser.toPixels(gridImageTensor, canvas)
-    const matInitial = cv.imread(canvas)
-    itemsToDelete.push(matInitial)
-
-    const matGrey = new cv.Mat()
-    itemsToDelete.push(matGrey)
-    // cv.CV_8UC4 => cv.CV_8UC1
-    cv.cvtColor(matInitial, matGrey, cv.COLOR_RGBA2GRAY)
-
-    // const imageData = matToImageData(itemsToDelete, matGrey)
+    const { matNormalised, imageDataNormalised } = normaliseImageData(itemsToDelete, imageData)
 
     const matBlur = new cv.Mat()
     itemsToDelete.push(matBlur)
     const ksize = new cv.Size(5, 5)
     const sigmaX = 0
-    cv.GaussianBlur(matGrey, matBlur, ksize, sigmaX)
+    cv.GaussianBlur(matNormalised, matBlur, ksize, sigmaX)
 
     const matBinary = new cv.Mat()
     itemsToDelete.push(matBinary)
@@ -46,6 +54,7 @@ export const findBoundingBox = async (gridImageTensor, svgElement, options = {})
     const mode = cv.RETR_EXTERNAL
     const method = cv.CHAIN_APPROX_SIMPLE
     cv.findContours(matBinary, contours, hierarchy, mode, method)
+
     const numContours = contours.size()
     if (numContours === 0) return undefined
     const areasAndBoundingRects = R.range(0, numContours).map(index => {
@@ -71,7 +80,10 @@ export const findBoundingBox = async (gridImageTensor, svgElement, options = {})
       SVG.drawContour(svgElement, points, 'red')
     }
 
-    return boundingBox
+    return {
+      boundingBox,
+      imageDataNormalised
+    }
   } finally {
     itemsToDelete.forEach(item => item.delete())
   }
