@@ -9,7 +9,8 @@ export const solve = puzzle => {
   const rows = buildRows(puzzle)
   const matrix = buildMatrix(rows)
   const resolveRowIndices = rowIndices => rowIndices.map(rowIndex => rows[rowIndex])
-  return dlxlib.solve(matrix).map(resolveRowIndices)
+  const options = { numSolutions: 2 }
+  return dlxlib.solve(matrix, options).map(resolveRowIndices)
 }
 
 export const getInitialValues = puzzle =>

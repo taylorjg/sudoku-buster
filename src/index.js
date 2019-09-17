@@ -34,6 +34,8 @@ const processImage = async (gridImageTensor, svgElement) => {
   try {
     const digitPredictions = await scanPuzzle(getCellsModel(), gridImageTensor, svgElement, scanPuzzleOptions)
     performance.mark('after scanPuzzle')
+    // https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Ordinary_Sudoku
+    if (digitPredictions.length < 17) return false
     if (!satisfiesAllConstraints(digitPredictions)) return false
     performance.mark('after satisfiesAllConstraints')
     const puzzle = digitPredictionsToPuzzle(digitPredictions)
