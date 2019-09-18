@@ -84,11 +84,20 @@ export const drawSolution = (svgElement, solution) => {
   calculatedValues.forEach(row => drawValue(svgElement, row))
 }
 
-export const drawContour = (svgElement, points, colour) => {
-  const oldPolyline = svgElement.querySelector('.contour')
-  if (oldPolyline) {
-    oldPolyline.parentNode.removeChild(oldPolyline)
+const clearDiagnostic = (svgElement, selector) => {
+  const existingElement = svgElement.querySelector(selector)
+  if (existingElement) {
+    existingElement.parentNode.removeChild(existingElement)
   }
+}
+
+export const clearDiagnostics = svgElement => {
+  clearDiagnostic(svgElement, '.contour')
+  clearDiagnostic(svgElement, '.bounding-box')
+  clearDiagnostic(svgElement, '.grid-squares')
+}
+
+export const drawContour = (svgElement, points, colour) => {
   const scaleX = 100 / C.GRID_IMAGE_WIDTH
   const scaleY = 100 / C.GRID_IMAGE_HEIGHT
   const polyline = createSvgElement('polyline', {
@@ -102,10 +111,6 @@ export const drawContour = (svgElement, points, colour) => {
 }
 
 export const drawBoundingBox = (svgElement, boundingBox, colour) => {
-  const oldRect = svgElement.querySelector('.bounding-box')
-  if (oldRect) {
-    oldRect.parentNode.removeChild(oldRect)
-  }
   const [x, y, width, height] = boundingBox
   const scaleX = 100 / C.GRID_IMAGE_WIDTH
   const scaleY = 100 / C.GRID_IMAGE_HEIGHT
@@ -123,10 +128,6 @@ export const drawBoundingBox = (svgElement, boundingBox, colour) => {
 }
 
 export const drawGridSquares = (svgElement, gridSquares, colour) => {
-  const oldPath = svgElement.querySelector('.grid-squares')
-  if (oldPath) {
-    oldPath.parentNode.removeChild(oldPath)
-  }
   const scaleX = 100 / C.GRID_IMAGE_WIDTH
   const scaleY = 100 / C.GRID_IMAGE_HEIGHT
   const d = gridSquares

@@ -7,8 +7,9 @@ import * as CALC from './calculations'
 import * as SVG from './drawSvg'
 import { findBoundingBox } from './findBoundingBox'
 
-const findAndCheckBoundingBox = async imageData => {
+const findAndCheckBoundingBox = async (imageData, svgElement) => {
   const result = await findBoundingBox(imageData)
+  svgElement && SVG.clearDiagnostics(svgElement)
   if (!result) {
     const error = new Error('Failed to find bounding box.')
     error.isScanException = true
@@ -62,7 +63,7 @@ export const scanPuzzle = async (cellsModel, imageTensor, svgElement, drawingOpt
   try {
     const imageData = await I.imageTensorToImageData(imageTensor)
     performance.mark('after imageTensorToImageData')
-    const boundingBoxInfo = await findAndCheckBoundingBox(imageData)
+    const boundingBoxInfo = await findAndCheckBoundingBox(imageData, svgElement)
     performance.mark('after findAndCheckBoundingBox')
     handleDrawingOptions(boundingBoxInfo, svgElement, drawingOptions)
     performance.mark('after handleDrawingOptions')
