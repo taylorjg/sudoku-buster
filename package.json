@@ -1,13 +1,12 @@
 {
   "name": "sudoku-buster",
-  "version": "0.0.49",
+  "version": "0.0.50",
   "description": "Web app to scan and solve a Sudoku puzzle",
   "scripts": {
     "eslint": "eslint .",
     "build": "webpack",
     "start": "node server",
     "start:dev": "webpack-dev-server",
-    "test": "mocha test",
     "heroku-postbuild": "npm run build"
   },
   "author": "Jonathan Taylor",

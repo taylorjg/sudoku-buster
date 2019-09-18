@@ -1,7 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
 import queryString from 'query-string'
-import * as I from './image'
 import * as UI from './ui'
 import { loadModels, getCellsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
@@ -13,8 +12,9 @@ import { showErrorPanel, hideErrorPanel } from './errorPanel'
 const queryParams = queryString.parse(location.search)
 
 const scanPuzzleOptions = {
+  drawContour: queryParams['c'] !== undefined,
   drawBoundingBox: queryParams['bb'] !== undefined,
-  drawContour: queryParams['c'] !== undefined
+  drawGridSquares: queryParams['gs'] !== undefined
 }
 
 const logPerformanceMetrics = () => {

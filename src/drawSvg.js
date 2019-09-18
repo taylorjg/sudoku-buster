@@ -84,6 +84,23 @@ export const drawSolution = (svgElement, solution) => {
   calculatedValues.forEach(row => drawValue(svgElement, row))
 }
 
+export const drawContour = (svgElement, points, colour) => {
+  const oldPolyline = svgElement.querySelector('.contour')
+  if (oldPolyline) {
+    oldPolyline.parentNode.removeChild(oldPolyline)
+  }
+  const scaleX = 100 / C.GRID_IMAGE_WIDTH
+  const scaleY = 100 / C.GRID_IMAGE_HEIGHT
+  const polyline = createSvgElement('polyline', {
+    'class': 'contour',
+    stroke: colour,
+    'stroke-width': 1 * scaleX,
+    points: points.map(({ x, y }) => `${x * scaleX},${y * scaleY}`).join(' '),
+    fill: 'none'
+  })
+  svgElement.appendChild(polyline)
+}
+
 export const drawBoundingBox = (svgElement, boundingBox, colour) => {
   const oldRect = svgElement.querySelector('.bounding-box')
   if (oldRect) {
@@ -105,19 +122,28 @@ export const drawBoundingBox = (svgElement, boundingBox, colour) => {
   svgElement.appendChild(rect)
 }
 
-export const drawContour = (svgElement, points, colour) => {
-  const oldPolyline = svgElement.querySelector('.contour')
-  if (oldPolyline) {
-    oldPolyline.parentNode.removeChild(oldPolyline)
+export const drawGridSquares = (svgElement, gridSquares, colour) => {
+  const oldPath = svgElement.querySelector('.grid-squares')
+  if (oldPath) {
+    oldPath.parentNode.removeChild(oldPath)
   }
   const scaleX = 100 / C.GRID_IMAGE_WIDTH
   const scaleY = 100 / C.GRID_IMAGE_HEIGHT
-  const polyline = createSvgElement('polyline', {
-    'class': 'contour',
+  const d = gridSquares
+    .map(([x, y, w, h]) => {
+      const sx = x * scaleX
+      const sy = y * scaleY
+      const sw = w * scaleX
+      const sh = h * scaleY
+      return `M${sx},${sy} h${sw} v${sh} h${-sw} z`
+    })
+    .join(' ')
+  const path = createSvgElement('path', {
+    'class': 'grid-squares',
     stroke: colour,
     'stroke-width': 1 * scaleX,
-    points: points.map(({ x, y }) => `${x * scaleX},${y * scaleY}`).join(' '),
-    fill: 'none'
+    fill: 'none',
+    d
   })
-  svgElement.appendChild(polyline)
+  svgElement.appendChild(path)
 }

@@ -36,10 +36,11 @@ describe('sudoku-buster tests', () => {
       const imageData = await I.imageTensorToImageData(imageTensor)
       const { boundingBox } = await findBoundingBox(imageData)
       const [x, y, w, h] = boundingBox
-      expect(x).to.be.almost(21, 3)
-      expect(y).to.be.almost(30, 3)
-      expect(w).to.be.almost(184, 3)
-      expect(h).to.be.almost(184, 3)
+      const TOLERANCE = 3
+      expect(x).to.be.almost(21, TOLERANCE)
+      expect(y).to.be.almost(30, TOLERANCE)
+      expect(w).to.be.almost(184, TOLERANCE)
+      expect(h).to.be.almost(184, TOLERANCE)
     })
   })
 

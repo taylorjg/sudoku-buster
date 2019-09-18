@@ -1,7 +1,6 @@
 import * as R from 'ramda'
 import * as C from './constants'
 import * as CALC from './calculations'
-import * as SVG from './drawSvg'
 
 // Assumes that 'mat' is cv.CV_8UC1.
 const matToImageData = (itemsToDelete, mat) => {
@@ -32,7 +31,7 @@ const normaliseImageData = (itemsToDelete, imageDataIn) => {
   }
 }
 
-export const findBoundingBox = async (imageData, svgElement, options = {}) => {
+export const findBoundingBox = async imageData => {
   const itemsToDelete = []
   try {
     const { matNormalised, imageDataNormalised } = normaliseImageData(itemsToDelete, imageData)
@@ -64,23 +63,15 @@ export const findBoundingBox = async (imageData, svgElement, options = {}) => {
       return { area, boundingRect, contour }
     })
     const sorted = R.sort(R.descend(R.prop('area')), areasAndBoundingRects)
-    const { x, y, width, height } = R.head(sorted).boundingRect
+    const best = R.head(sorted)
+    const { x, y, width, height } = best.boundingRect
 
     // I'm insetting by 2 pixels in both directions because
     // the best contour tends to be just slightly too big.
     const boundingBox = CALC.inset(x, y, width, height, 2, 2)
 
-    if (options.drawBoundingBox) {
-      SVG.drawBoundingBox(svgElement, boundingBox, 'blue')
-    }
-
-    if (options.drawContour) {
-      const contour = R.head(sorted).contour
-      const points = R.splitEvery(2, contour.data32S).map(([x, y]) => ({ x, y }))
-      SVG.drawContour(svgElement, points, 'red')
-    }
-
     return {
+      contour: best.contour,
       boundingBox,
       imageDataNormalised
     }
