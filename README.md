@@ -46,6 +46,19 @@ I clearly still have some work to do to reduce the size of these resources.
 * You can tap the webcam to cancel the scanning and stop the webcam
 * Tap the solution to start the webcam again to scan another Sudoku puzzle
 
+# Query Params
+
+The following query params can be added:
+
+| Query Param | Description |
+| ----------- | ----------- |
+| c           | Draw the largest contour (red) |
+| bb          | Draw the bounding box of the largest contour (blue) |
+| gs          | Draw all the grid squares (green) |
+| fps         | Display the number of webcam captures being processed per second |
+
+https://sudoku-buster.herokuapp.com/index.html?c&bb&gs&fps
+
 # Links
 
 * For the OpenCV approach to finding the bounding box, I borrowed heavily from:
