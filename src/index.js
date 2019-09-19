@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
+import Stats from 'stats.js'
 import queryString from 'query-string'
 import * as UI from './ui'
 import { loadModels, getCellsModel } from './models'
@@ -17,6 +18,23 @@ const scanPuzzleOptions = {
   drawGridSquares: queryParams['gs'] !== undefined
 }
 
+const fpsOn = queryParams['fps'] !== undefined
+let stats = undefined
+
+const showStats = () => {
+  if (fpsOn) {
+    stats = new Stats()
+    document.body.appendChild(stats.dom)
+  }
+}
+
+const hideStats = () => {
+  if (fpsOn && stats) {
+    document.body.removeChild(stats.dom)
+    stats = undefined
+  }
+}
+
 const logPerformanceMetrics = () => {
   const marks = performance.getEntriesByType('mark')
   if (marks.length === 0) return
@@ -28,6 +46,7 @@ const logPerformanceMetrics = () => {
       sincePreviousStartTime: (index > 0 ? startTime - marks[index - 1].startTime : 0).toFixed(2)
     }))
   transformedMarks.forEach(mark => log.info(JSON.stringify(mark)))
+  stats && stats.end()
 }
 
 const processImage = async (gridImageTensor, svgElement) => {
@@ -61,6 +80,7 @@ const onVideoClick = async elements => {
   if (isWebcamStarted()) {
     stopWebcam()
     UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+    hideStats()
     return
   }
 
@@ -68,6 +88,7 @@ const onVideoClick = async elements => {
     hideErrorPanel()
     await startWebcam(elements.videoElement)
     UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
+    showStats()
   } catch (error) {
     log.error(`[onVideoClick] ${error.message}`)
     showErrorPanel(error)
@@ -78,6 +99,7 @@ const onVideoClick = async elements => {
     const disposables = []
     try {
       performance.clearMarks()
+      stats && stats.begin()
       const gridImageTensor = await captureWebcam()
       performance.mark('after captureWebcam')
       if (!gridImageTensor) break
@@ -93,6 +115,7 @@ const onVideoClick = async elements => {
   }
 
   stopWebcam()
+  hideStats()
 
   log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
 }
