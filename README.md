@@ -7,7 +7,7 @@ I used [a separate project](https://github.com/taylorjg/sudoku-scanner) to
 develop code to scan a Sudoku puzzle. It uses:
 
 * **OpenCV.js** to find the bounding box of the puzzle
-* **TensorFlow.js** to train a model to recognise blanks squares / digits 1 through 9
+* **TensorFlow.js** to train a model to recognise blank squares / digits 1 through 9
 
 I use [dlxlib](https://www.npmjs.com/package/dlxlib) to solve the Sudoku puzzle
 (my implementation of [Knuth's Algorithm X](https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X)).
@@ -21,7 +21,7 @@ some of the resources are very large:
 | -------- | ---- |
 | ~~opencv_4.1.1.js~~ | ~~8.7M~~ |
 | opencv.js | 4.1MB |
-| bundle.js | 995KB |
+| index.bundle.js | 997KB |
 | ~~models/digits/model.weights.bin~~ | ~~626KB~~ |
 | ~~models/blanks/model.weights.bin~~ | ~~304KB~~ |
 | models/cells/model.weights.bin | 627KB |
@@ -42,9 +42,9 @@ I clearly still have some work to do to reduce the size of these resources.
   * Try to position the puzzle roughly within the guides
   * Ensure the puzzle is in focus
   * Ensure the puzzle is straight (not wonky or warped)
-  * Try to avoid shadows on the image
-* You can tap the webcam to cancel the scanning and stop the webcam
-* Tap the solution to start the webcam again to scan another Sudoku puzzle
+  * Try to avoid shadows
+* You can tap the webcam to cancel scanning and return to the start
+* Tap the solution to return to the start
 
 # Query Params
 
@@ -57,7 +57,9 @@ The following query params can be added:
 | gs          | Draw all the grid squares (green) |
 | fps         | Display the number of webcam captures being processed per second |
 
-https://sudoku-buster.herokuapp.com/index.html?c&bb&gs&fps
+The following link enables all options (the Everything Bagel):
+
+* https://sudoku-buster.herokuapp.com/index.html?c&bb&gs&fps
 
 # Links
 
