@@ -126,9 +126,21 @@ const onSudokuClick = () =>
 UI.setVideoClickHandler(onVideoClick)
 UI.setSudokuClickHandler(onSudokuClick)
 
+const waitForOpenCVToFinishRunning = async () => {
+  for (; ;) {
+    if (cv && cv.Mat) {
+      log.info('[waitForOpenCVToFinishRunning] done')
+      return
+    }
+    log.info('[waitForOpenCVToFinishRunning] waiting...')
+    await new Promise(resolve => setTimeout(resolve, 2))
+  }
+}
+
 const onOpenCVLoaded = async () => {
   await loadModels()
   log.info(`[onOpenCVLoaded] tf memory: ${JSON.stringify(tf.memory())}`)
+  await waitForOpenCVToFinishRunning()
   UI.hideSplashContent()
   UI.showMainContent()
   UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
