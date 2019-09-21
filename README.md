@@ -61,6 +61,18 @@ The following link enables all options (the Everything Bagel):
 
 * https://sudoku-buster.herokuapp.com/index.html?c&bb&gs&fps
 
+# TODO
+
+* Try to further reduce the size of opencv.js
+* Use a service worker to cache large files
+* Improve scanning speed/accuracy/robustness
+  * Autocorrect warped images
+  * Tune the training of the cells model
+  * Re-train the cells model on binary images
+    * In an attempt to better handle different lighting conditions
+* Upload performance metrics and store them in a document database
+* Add a new web page for analysis of uploaded performance metrics
+
 # Links
 
 * For the OpenCV approach to finding the bounding box, I borrowed heavily from:
