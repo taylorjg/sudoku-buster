@@ -27,10 +27,13 @@ const findAndCheckBoundingBox = async (imageData, svgElement) => {
 }
 
 const handleDrawingOptions = (boundingBoxInfo, svgElement, drawingOptions) => {
-  const { contour, boundingBox } = boundingBoxInfo
+  const { contour, corners, boundingBox } = boundingBoxInfo
   if (drawingOptions.drawContour) {
     const points = R.splitEvery(2, contour.data32S).map(([x, y]) => ({ x, y }))
     SVG.drawContour(svgElement, points, 'red')
+  }
+  if (drawingOptions.drawCorners) {
+    SVG.drawCorners(svgElement, corners, 'magenta')
   }
   if (drawingOptions.drawBoundingBox) {
     SVG.drawBoundingBox(svgElement, boundingBox, 'blue')

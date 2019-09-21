@@ -93,6 +93,7 @@ const clearDiagnostic = (svgElement, selector) => {
 
 export const clearDiagnostics = svgElement => {
   clearDiagnostic(svgElement, '.contour')
+  clearDiagnostic(svgElement, '.corners')
   clearDiagnostic(svgElement, '.bounding-box')
   clearDiagnostic(svgElement, '.grid-squares')
 }
@@ -100,14 +101,27 @@ export const clearDiagnostics = svgElement => {
 export const drawContour = (svgElement, points, colour) => {
   const scaleX = 100 / C.GRID_IMAGE_WIDTH
   const scaleY = 100 / C.GRID_IMAGE_HEIGHT
-  const polyline = createSvgElement('polyline', {
+  const polygon = createSvgElement('polygon', {
     'class': 'contour',
     stroke: colour,
     'stroke-width': 1 * scaleX,
     points: points.map(({ x, y }) => `${x * scaleX},${y * scaleY}`).join(' '),
     fill: 'none'
   })
-  svgElement.appendChild(polyline)
+  svgElement.appendChild(polygon)
+}
+
+export const drawCorners = (svgElement, points, colour) => {
+  const scaleX = 100 / C.GRID_IMAGE_WIDTH
+  const scaleY = 100 / C.GRID_IMAGE_HEIGHT
+  const polygon = createSvgElement('polygon', {
+    'class': 'corners',
+    stroke: colour,
+    'stroke-width': 1 * scaleX,
+    points: points.map(({ x, y }) => `${x * scaleX},${y * scaleY}`).join(' '),
+    fill: 'none'
+  })
+  svgElement.appendChild(polygon)
 }
 
 export const drawBoundingBox = (svgElement, boundingBox, colour) => {

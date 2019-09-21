@@ -14,6 +14,7 @@ const queryParams = queryString.parse(location.search)
 
 const scanPuzzleOptions = {
   drawContour: queryParams['c'] !== undefined,
+  drawCorners: queryParams['cs'] !== undefined,
   drawBoundingBox: queryParams['bb'] !== undefined,
   drawGridSquares: queryParams['gs'] !== undefined
 }
