@@ -42,7 +42,7 @@ const handleDrawingOptions = (boundingBoxInfo, svgElement, drawingOptions) => {
 }
 
 const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingBox) => {
-  const gridSquareImageTensors = D.cropGridSquaresFromUnknownGrid(
+  const gridSquareImageTensors = D.cropGridSquares(
     gridImageTensor,
     boundingBox)
   disposables.push(gridSquareImageTensors)

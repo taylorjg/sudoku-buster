@@ -46,7 +46,6 @@ const logPerformanceMetrics = () => {
       sincePreviousStartTime: (index > 0 ? startTime - marks[index - 1].startTime : 0).toFixed(2)
     }))
   transformedMarks.forEach(mark => log.info(JSON.stringify(mark)))
-  stats && stats.end()
 }
 
 const processImage = async (gridImageTensor, svgElement) => {
@@ -98,8 +97,8 @@ const onVideoClick = async elements => {
   while (isWebcamStarted()) {
     const disposables = []
     try {
-      performance.clearMarks()
       stats && stats.begin()
+      performance.clearMarks()
       const gridImageTensor = await captureWebcam()
       performance.mark('after captureWebcam')
       if (!gridImageTensor) break
@@ -109,6 +108,7 @@ const onVideoClick = async elements => {
     } finally {
       disposables.forEach(disposable => disposable.dispose())
       logPerformanceMetrics()
+      stats && stats.end()
     }
     log.info('[onVideoClick] waiting for next frame...')
     await tf.nextFrame()
