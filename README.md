@@ -53,13 +53,14 @@ The following query params can be added:
 | Query Param | Description |
 | ----------- | ----------- |
 | c           | Draw the largest contour (red) |
+| cs          | Draw the four corners of the largest contour (magenta) |
 | bb          | Draw the bounding box of the largest contour (blue) |
 | gs          | Draw all the grid squares (green) |
 | fps         | Display the number of webcam captures being processed per second |
 
 The following link enables all options (the Everything Bagel):
 
-* https://sudoku-buster.herokuapp.com/index.html?c&bb&gs&fps
+* https://sudoku-buster.herokuapp.com/index.html?c&cs&bb&gs&fps
 
 # TODO
 
@@ -72,6 +73,12 @@ The following link enables all options (the Everything Bagel):
     * In an attempt to better handle different lighting conditions
 * Upload performance metrics and store them in a document database
 * Add a new web page for analysis of uploaded performance metrics
+
+# Tests
+
+A few basic in-browser tests can be found here:
+
+* [Tests](https://sudoku-buster.herokuapp.com/test.html)
 
 # Links
 
