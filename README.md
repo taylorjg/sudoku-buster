@@ -66,7 +66,7 @@ The following link enables all options (the Everything Bagel):
 * Try to further reduce the size of opencv.js
 * Use a service worker to cache large files
 * Improve scanning speed/accuracy/robustness
-  * Autocorrect warped images
+  * ~~Autocorrect warped images~~
   * Tune the training of the cells model
   * Re-train the cells model on binary images
     * In an attempt to better handle different lighting conditions

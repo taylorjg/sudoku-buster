@@ -3,9 +3,9 @@ import * as R from 'ramda'
 import * as C from './constants'
 import * as CALC from './calculations'
 
-const normaliseForCropping = ([x, y, w, h]) => {
-  const normaliseX = value => value / (C.GRID_IMAGE_WIDTH - 1)
-  const normaliseY = value => value / (C.GRID_IMAGE_HEIGHT - 1)
+const normaliseForCropping = (imageWidth, imageHeight) => ([x, y, w, h]) => {
+  const normaliseX = value => value / (imageWidth - 1)
+  const normaliseY = value => value / (imageHeight - 1)
   return [
     normaliseY(y),
     normaliseX(x),
@@ -16,9 +16,11 @@ const normaliseForCropping = ([x, y, w, h]) => {
 
 export const cropGridSquares = (gridImageTensor, boundingBox) =>
   tf.tidy(() => {
+    // HWC shape
+    const [imageHeight, imageWidth] = gridImageTensor.shape
     const gridSquares = CALC.calculateGridSquares(boundingBox)
     const image = gridImageTensor.div(255).expandDims()
-    const boxes = gridSquares.map(normaliseForCropping)
+    const boxes = gridSquares.map(normaliseForCropping(imageWidth, imageHeight))
     const boxInd = R.repeat(0, boxes.length)
     const cropSize = [C.DIGIT_IMAGE_HEIGHT, C.DIGIT_IMAGE_WIDTH]
     return tf.image.cropAndResize(image, boxes, boxInd, cropSize)

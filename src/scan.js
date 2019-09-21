@@ -70,11 +70,12 @@ export const scanPuzzle = async (cellsModel, imageTensor, svgElement, drawingOpt
     performance.mark('after findAndCheckBoundingBox')
     handleDrawingOptions(boundingBoxInfo, svgElement, drawingOptions)
     performance.mark('after handleDrawingOptions')
-    const { boundingBox, imageDataNormalised } = boundingBoxInfo
-    const imageTensorNormalised = I.imageDataToImageTensor(imageDataNormalised)
-    disposables.push(imageTensorNormalised)
+    const { imageDataCorrected } = boundingBoxInfo
+    const imageTensorCorrected = I.imageDataToImageTensor(imageDataCorrected)
+    disposables.push(imageTensorCorrected)
     performance.mark('after imageDataToImageTensor')
-    const indexedDigitPredictions = await predictDigits(disposables, cellsModel, imageTensorNormalised, boundingBox)
+    const boundingBox = CALC.inset(0, 0, imageDataCorrected.width, imageDataCorrected.height, 2, 2)
+    const indexedDigitPredictions = await predictDigits(disposables, cellsModel, imageTensorCorrected, boundingBox)
     performance.mark('after predictDigits')
     return indexedDigitPredictions
   } finally {

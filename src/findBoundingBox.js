@@ -24,15 +24,19 @@ const normaliseImageData = (itemsToDelete, imageDataIn) => {
   itemsToDelete.push(matResized)
   const dsize = new cv.Size(C.GRID_IMAGE_WIDTH, C.GRID_IMAGE_HEIGHT)
   cv.resize(matGrey, matResized, dsize)
-  const imageDataOut = matToImageData(itemsToDelete, matResized)
-  return {
-    matNormalised: matResized,
-    imageDataNormalised: imageDataOut
-  }
+  return matResized
 }
 
 const distanceSquared = (pt1, pt2) =>
   Math.pow(pt1.x - pt2.x, 2) + Math.pow(pt1.y - pt2.y, 2)
+
+const distance = (pt1, pt2) =>
+  Math.sqrt(distanceSquared(pt1, pt2))
+
+const TOP_LEFT = 0
+const TOP_RIGHT = 1
+const BOTTOM_RIGHT = 2
+const BOTTOM_LEFT = 3
 
 const findCorners = contour => {
   const M = cv.moments(contour, true)
@@ -41,10 +45,6 @@ const findCorners = contour => {
   const centre = { x: cx, y: cy }
   const corners = R.repeat(centre, 4)
   const maxDist = R.repeat(0, 4)
-  const TOP_LEFT = 0
-  const TOP_RIGHT = 1
-  const BOTTOM_RIGHT = 2
-  const BOTTOM_LEFT = 3
   const quadrant = p => {
     if (p.x < cx && p.y < cy) return TOP_LEFT
     if (p.x > cx && p.y < cy) return TOP_RIGHT
@@ -65,10 +65,42 @@ const findCorners = contour => {
   return corners
 }
 
+const matFromPoints = points => {
+  const rows = points.length
+  const cols = 1
+  const type = cv.CV_32FC2
+  const array = R.chain(({ x, y }) => [x, y], points)
+  return cv.matFromArray(rows, cols, type, array)
+}
+
+const applyWarpPerspective = (itemsToDelete, matIn, corners) => {
+  const widthTop = distance(corners[TOP_LEFT], corners[TOP_RIGHT])
+  const widthBottom = distance(corners[BOTTOM_LEFT], corners[BOTTOM_RIGHT])
+  const heightLeft = distance(corners[TOP_LEFT], corners[BOTTOM_LEFT])
+  const heightRight = distance(corners[TOP_RIGHT], corners[BOTTOM_RIGHT])
+  const dsize = new cv.Size(Math.max(widthTop, widthBottom), Math.max(heightLeft, heightRight))
+  const flatCorners = [
+    { x: 0, y: 0 },
+    { x: dsize.width, y: 0 },
+    { x: dsize.width, y: dsize.height },
+    { x: 0, y: dsize.height }
+  ]
+  const matCorners = matFromPoints(corners)
+  const matFlatCorners = matFromPoints(flatCorners)
+  itemsToDelete.push(matCorners)
+  itemsToDelete.push(matFlatCorners)
+  const M = cv.getPerspectiveTransform(matCorners, matFlatCorners)
+  itemsToDelete.push(M)
+  const matOut = new cv.Mat()
+  itemsToDelete.push(matOut)
+  cv.warpPerspective(matIn, matOut, M, dsize)
+  return matOut
+}
+
 export const findBoundingBox = async imageData => {
   const itemsToDelete = []
   try {
-    const { matNormalised, imageDataNormalised } = normaliseImageData(itemsToDelete, imageData)
+    const matNormalised = normaliseImageData(itemsToDelete, imageData)
 
     const matBlur = new cv.Mat()
     itemsToDelete.push(matBlur)
@@ -106,11 +138,14 @@ export const findBoundingBox = async imageData => {
 
     const corners = findCorners(contour)
 
+    const matCorrected = applyWarpPerspective(itemsToDelete, matNormalised, corners)
+    const imageDataCorrected = matToImageData(itemsToDelete, matCorrected)
+
     return {
       contour,
       corners,
       boundingBox,
-      imageDataNormalised
+      imageDataCorrected
     }
   } finally {
     itemsToDelete.forEach(item => item.delete())
