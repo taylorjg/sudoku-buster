@@ -2,6 +2,7 @@ import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
 import Stats from 'stats.js'
 import queryString from 'query-string'
+import axios from 'axios'
 import * as UI from './ui'
 import { loadModels, getCellsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
@@ -36,7 +37,37 @@ const hideStats = () => {
   }
 }
 
-const logPerformanceMetrics = () => {
+let startTime = undefined
+let frameCount = undefined
+let markss = undefined
+
+const resetScanMetrics = () => {
+  startTime = performance.now()
+  frameCount = 0
+  markss = []
+}
+
+const saveScanMetrics = async outcome => {
+  try {
+    const config = {
+      headers: {
+        'content-type': 'application/json'
+      }
+    }
+    const duration = performance.now() - startTime
+    const data = {
+      outcome,
+      duration,
+      frameCount,
+      markss
+    }
+    await axios.post('/api/scanMetrics', JSON.stringify(data), config)
+  } catch (error) {
+    log.error(`[postScanMetrics] ${error}`)
+  }
+}
+
+const logPerformanceMetrics = async () => {
   const marks = performance.getEntriesByType('mark')
   if (marks.length === 0) return
   const firstStartTime = marks[0].startTime
@@ -47,6 +78,8 @@ const logPerformanceMetrics = () => {
       sincePreviousStartTime: (index > 0 ? startTime - marks[index - 1].startTime : 0).toFixed(2)
     }))
   transformedMarks.forEach(mark => log.info(JSON.stringify(mark)))
+  frameCount++
+  markss.push(marks)
 }
 
 const processImage = async (gridImageTensor, svgElement) => {
@@ -81,11 +114,13 @@ const onVideoClick = async elements => {
     stopWebcam()
     UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
     hideStats()
+    await saveScanMetrics('cancelled')
     return
   }
 
   try {
     hideErrorPanel()
+    resetScanMetrics()
     await startWebcam(elements.videoElement)
     UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
     showStats()
@@ -94,6 +129,8 @@ const onVideoClick = async elements => {
     showErrorPanel(error)
     return
   }
+
+  let result = false
 
   while (isWebcamStarted()) {
     const disposables = []
@@ -104,7 +141,7 @@ const onVideoClick = async elements => {
       performance.mark('after captureWebcam')
       if (!gridImageTensor) break
       disposables.push(gridImageTensor)
-      const result = await processImage(gridImageTensor, elements.videoOverlayGuidesElement)
+      result = await processImage(gridImageTensor, elements.videoOverlayGuidesElement)
       if (result) break
     } finally {
       disposables.forEach(disposable => disposable.dispose())
@@ -117,6 +154,10 @@ const onVideoClick = async elements => {
 
   stopWebcam()
   hideStats()
+  
+  if (result) {
+    await saveScanMetrics('completed')
+  }
 
   log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
 }

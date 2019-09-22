@@ -11,6 +11,7 @@ module.exports = {
   mode: process.env.NODE_ENV || 'development',
   entry: {
     index: './src/index.js',
+    analysis: './analysis/index.js',
     test: './test/index.js'
   },
   output: {
@@ -31,6 +32,12 @@ module.exports = {
       version
     }),
     new HtmlWebpackPlugin({
+      template: './analysis/index.html',
+      filename: path.resolve(distFolder, 'analysis.html'),
+      chunks: ['analysis'],
+      version
+    }),
+    new HtmlWebpackPlugin({
       template: './test/index.html',
       filename: path.resolve(distFolder, 'test.html'),
       chunks: ['test'],
@@ -39,6 +46,9 @@ module.exports = {
   ],
   devtool: 'source-map',
   devServer: {
-    contentBase: distFolder
+    contentBase: distFolder,
+    proxy: {
+      '/api': 'http://localhost:3090'
+    }
   }
 }
