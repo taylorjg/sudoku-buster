@@ -10,6 +10,7 @@ import { scanPuzzle } from './scan'
 import { satisfiesAllConstraints, digitPredictionsToPuzzle } from './puzzle'
 import { getInitialValues, solve } from './solve'
 import { showErrorPanel, hideErrorPanel } from './errorPanel'
+import { version } from '../package.json'
 
 const queryParams = queryString.parse(location.search)
 
@@ -55,7 +56,10 @@ const saveScanMetrics = async outcome => {
       }
     }
     const duration = performance.now() - startTime
+    const timestamp = new Date().getTime()
     const data = {
+      version,
+      timestamp,
       outcome,
       duration,
       frameCount,

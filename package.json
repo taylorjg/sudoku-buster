@@ -1,6 +1,6 @@
 {
   "name": "sudoku-buster",
-  "version": "0.0.59",
+  "version": "0.0.60",
   "description": "Web app to scan and solve a Sudoku puzzle",
   "scripts": {
     "eslint": "eslint .",
@@ -19,6 +19,7 @@
     "express": "^4.17.1",
     "heroku-ssl-redirect": "0.0.4",
     "loglevel": "^1.6.4",
+    "moment": "^2.24.0",
     "mongodb": "^3.3.2",
     "query-string": "^6.8.3",
     "ramda": "^0.26.1",

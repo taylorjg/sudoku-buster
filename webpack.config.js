@@ -11,7 +11,7 @@ module.exports = {
   mode: process.env.NODE_ENV || 'development',
   entry: {
     index: './src/index.js',
-    analysis: './analysis/index.js',
+    analytics: './analytics/index.js',
     test: './test/index.js'
   },
   output: {
@@ -32,9 +32,9 @@ module.exports = {
       version
     }),
     new HtmlWebpackPlugin({
-      template: './analysis/index.html',
-      filename: path.resolve(distFolder, 'analysis.html'),
-      chunks: ['analysis'],
+      template: './analytics/index.html',
+      filename: path.resolve(distFolder, 'analytics.html'),
+      chunks: ['analytics'],
       version
     }),
     new HtmlWebpackPlugin({
