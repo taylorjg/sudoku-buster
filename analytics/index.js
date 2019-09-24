@@ -50,8 +50,11 @@ const createSummaryRow = item => {
 
   const fps = item.frameCount / (item.duration / 1000)
 
-  const deleteButton = tdActionElement.querySelector('button')
-  deleteButton.addEventListener('click', () => onDeleteById(item._id))
+  tdActionElement.querySelector('button')
+    .addEventListener('click', e => {
+      e.stopPropagation()
+      onDeleteById(item._id)
+    })
 
   tdVersionElement.innerText = item.version
   tdTimestampElement.innerText = timestamp
@@ -93,10 +96,14 @@ const createDetailsRow = (item, summaryRow) => {
   const solutionSvgElement = detailsRow.querySelector(makeSelector(2, 3, 'svg'))
 
   tdUserAgentElement.innerText = item.userAgent
+
   drawImageDataURL(canvasElement, item.imageDataURL)
-  drawInitialValues(initialValuesSvgElement, item.solution)
-  drawInitialValues(solutionSvgElement, item.solution)
-  drawSolution(solutionSvgElement, item.solution)
+  
+  if (item.solution) {
+    drawInitialValues(initialValuesSvgElement, item.solution)
+    drawInitialValues(solutionSvgElement, item.solution)
+    drawSolution(solutionSvgElement, item.solution)
+  }
 
   return detailsRow
 }
