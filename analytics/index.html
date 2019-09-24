@@ -7,11 +7,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .cloak {
+      display: none;
+    }
+  </style>
   <template id="summary-row-template">
     <tr>
       <td>version</td>
       <td>timestamp</td>
-      <td>outcome</td>
+      <td>
+        <span class="outcome-completed glyphicon glyphicon-ok" style="color: green;" aria-hidden="true"></span>
+        <span class="outcome-cancelled glyphicon glyphicon-remove" style="color: red;" aria-hidden="true"></span>
+      </td>
       <td>duration</td>
       <td>frameCount</td>
       <td>fps</td>
@@ -48,6 +56,7 @@
     </div>
     <div class="row">
       <div class="pull-right">
+        <img id="loading-spinner" class="cloak" alt="loading spinner" src="loading-spinner.gif">
         <button id="refresh-btn" class="btn btn-xs btn-success">
           Refresh
           <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>

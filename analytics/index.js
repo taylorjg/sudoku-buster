@@ -2,14 +2,26 @@ import axios from 'axios'
 import moment from 'moment'
 import { drawInitialValues, drawSolution } from '../src/drawSvg'
 
+let operationInProgress = false
+
 const onDeleteAll = async () => {
-  await axios.delete('/api/scanMetrics')
-  refreshTable()
+  try {
+    operationInProgress = true
+    await axios.delete('/api/scanMetrics')
+    refreshTable()
+  } finally {
+    operationInProgress = false
+  }
 }
 
 const onDeleteById = async id => {
-  await axios.delete(`/api/scanMetrics/${id}`)
-  refreshTable()
+  try {
+    operationInProgress = true
+    await axios.delete(`/api/scanMetrics/${id}`)
+    refreshTable()
+  } finally {
+    operationInProgress = false
+  }
 }
 
 const clearTable = () => {
@@ -37,7 +49,8 @@ const createSummaryRow = item => {
 
   const tdVersionElement = summaryRow.querySelector('td:nth-child(1)')
   const tdTimestampElement = summaryRow.querySelector('td:nth-child(2)')
-  const tdOutcomeElement = summaryRow.querySelector('td:nth-child(3)')
+  const outcomeCompletedElement = summaryRow.querySelector('.outcome-completed')
+  const outcomeCancelledElement = summaryRow.querySelector('.outcome-cancelled')
   const tdDurationElement = summaryRow.querySelector('td:nth-child(4)')
   const tdFrameCountElement = summaryRow.querySelector('td:nth-child(5)')
   const tdFPSElement = summaryRow.querySelector('td:nth-child(6)')
@@ -58,7 +71,9 @@ const createSummaryRow = item => {
 
   tdVersionElement.innerText = item.version
   tdTimestampElement.innerText = timestamp
-  tdOutcomeElement.innerText = item.outcome
+  const completed = item.outcome === 'completed'
+  outcomeCompletedElement.style.display = completed ? 'inline' : 'none'
+  outcomeCancelledElement.style.display = completed ? 'none' : 'inline'
   tdDurationElement.innerText = item.duration.toFixed(2)
   tdFrameCountElement.innerText = item.frameCount
   tdFPSElement.innerText = fps.toFixed(2)
@@ -98,7 +113,7 @@ const createDetailsRow = (item, summaryRow) => {
   tdUserAgentElement.innerText = item.userAgent
 
   drawImageDataURL(canvasElement, item.imageDataURL)
-  
+
   if (item.solution) {
     drawInitialValues(initialValuesSvgElement, item.solution)
     drawInitialValues(solutionSvgElement, item.solution)
@@ -112,21 +127,31 @@ const populateTable = data =>
   data.forEach(createSummaryRow)
 
 const refreshTable = async () => {
-  const { data } = await axios.get('/api/scanMetrics')
-  clearTable()
-  populateTable(data)
+  try {
+    operationInProgress = true
+    const { data } = await axios.get('/api/scanMetrics')
+    clearTable()
+    populateTable(data)
+  } finally {
+    operationInProgress = false
+  }
 }
 
 const onRefresh = () => {
   refreshTable()
 }
 
+const loadingSpinnerElement = document.getElementById('loading-spinner')
 const refreshButton = document.getElementById('refresh-btn')
 const deleteAllButton = document.getElementById('delete-all-btn')
 const tbodyElement = document.querySelector('table tbody')
 
 const onIdle = () => {
-  deleteAllButton.disabled = !tbodyElement.hasChildNodes()
+  loadingSpinnerElement.style.display = operationInProgress ? 'inline-block' : 'none'
+  refreshTable.disabled = operationInProgress
+  deleteAllButton.disabled = operationInProgress || !tbodyElement.hasChildNodes()
+  const deleteButtons = tbodyElement.querySelectorAll('tr td button')
+  deleteButtons.forEach(deleteButton => deleteButton.disabled = operationInProgress)
   requestAnimationFrame(onIdle)
 }
 

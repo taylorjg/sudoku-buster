@@ -21,6 +21,7 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin([
       { context: './src', from: '*.css' },
+      { context: './src', from: '*.gif' },
       { context: './src', from: 'opencv.js' },
       { from: './models', to: 'models/' },
       { from: './rawImages', to: 'rawImages/' }
