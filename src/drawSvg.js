@@ -72,15 +72,16 @@ const drawValue = (svgElement, row) => {
   svgElement.appendChild(textElement)
 }
 
-export const drawInitialValues = (svgElement, initialValues) => {
+export const drawInitialValues = (svgElement, rows) => {
   deleteChildren(svgElement)
   drawHorizontalGridLines(svgElement)
   drawVerticalGridLines(svgElement)
+  const initialValues = rows.filter(row => row.isInitialValue)
   initialValues.forEach(row => drawValue(svgElement, row))
 }
 
-export const drawSolution = (svgElement, solution) => {
-  const calculatedValues = solution.filter(row => !row.isInitialValue)
+export const drawSolution = (svgElement, rows) => {
+  const calculatedValues = rows.filter(row => !row.isInitialValue)
   calculatedValues.forEach(row => drawValue(svgElement, row))
 }
 

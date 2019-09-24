@@ -4,6 +4,7 @@ import Stats from 'stats.js'
 import queryString from 'query-string'
 import axios from 'axios'
 import * as UI from './ui'
+import { imageTensorToDataURL } from './image'
 import { loadModels, getCellsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
 import { scanPuzzle } from './scan'
@@ -48,7 +49,7 @@ const resetScanMetrics = () => {
   markss = []
 }
 
-const saveScanMetrics = async outcome => {
+const saveScanMetrics = async (outcome, imageDataURL, solution) => {
   try {
     const config = {
       headers: {
@@ -63,7 +64,9 @@ const saveScanMetrics = async outcome => {
       outcome,
       duration,
       frameCount,
-      markss
+      markss,
+      imageDataURL,
+      solution
     }
     await axios.post('/api/scanMetrics', JSON.stringify(data), config)
   } catch (error) {
@@ -86,29 +89,34 @@ const logPerformanceMetrics = async () => {
   markss.push(marks)
 }
 
-const processImage = async (gridImageTensor, svgElement) => {
+const processImage = async (imageTensor, svgElement) => {
   try {
-    const digitPredictions = await scanPuzzle(getCellsModel(), gridImageTensor, svgElement, scanPuzzleOptions)
+    const digitPredictions = await scanPuzzle(getCellsModel(), imageTensor, svgElement, scanPuzzleOptions)
     performance.mark('after scanPuzzle')
     // https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Ordinary_Sudoku
-    if (digitPredictions.length < 17) return false
-    if (!satisfiesAllConstraints(digitPredictions)) return false
+    if (digitPredictions.length < 17) return
+    if (!satisfiesAllConstraints(digitPredictions)) return
     performance.mark('after satisfiesAllConstraints')
     const puzzle = digitPredictionsToPuzzle(digitPredictions)
     const initialValues = getInitialValues(puzzle)
     const solutions = solve(puzzle, { numSolutions: 1 })
     performance.mark('after solve')
-    if (solutions.length !== 1) return false
+    if (solutions.length !== 1) return
+    const solution = solutions[0]
     UI.setDisplayMode(UI.DISPLAY_MODE_SOLUTION)
-    UI.drawPuzzle(initialValues, solutions[0])
+    UI.drawPuzzle(initialValues, solution)
     performance.mark('after drawPuzzle')
-    return true
+    const imageDataURL = await imageTensorToDataURL(imageTensor)
+    return {
+      imageDataURL,
+      solution // [{coords, value, isInitialValue}]
+    }
   } catch (error) {
     log.error(`[processImage] ${error.message}`)
     if (!error.isScanException) {
       showErrorPanel(error.message)
     }
-    return false
+    return
   }
 }
 
@@ -158,9 +166,9 @@ const onVideoClick = async elements => {
 
   stopWebcam()
   hideStats()
-  
+
   if (result) {
-    await saveScanMetrics('completed')
+    await saveScanMetrics('completed', result.imageDataURL, result.solution)
   }
 
   log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)

@@ -116,6 +116,20 @@ body {
   text-anchor: middle;
 }
 
+.thumbnail-image {
+  width: 200px;
+  height: 200px;
+}
+
+.thumbnail-grid {
+  width: 200px;
+  height: 200px;
+}
+
+.thumbnail-grid .sudoku__digit {
+  font-size: calc(var(--grid-size) / 24);
+}
+
 .sudoku__digit--initial {
   fill: magenta;
 }

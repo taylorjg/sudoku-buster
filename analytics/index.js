@@ -1,5 +1,6 @@
 import axios from 'axios'
 import moment from 'moment'
+import { drawInitialValues, drawSolution } from '../src/drawSvg'
 
 const onDeleteAll = async () => {
   await axios.delete('/api/scanMetrics')
@@ -17,21 +18,22 @@ const clearTable = () => {
   }
 }
 
-const onRowClick = (item, trElement) => {
-  if (trElement.detailsRow) {
-    tbodyElement.removeChild(trElement.detailsRow)
-    delete trElement.detailsRow
+const onRowClick = (item, summaryRow) => {
+  if (summaryRow.detailsRow) {
+    tbodyElement.removeChild(summaryRow.detailsRow)
+    delete summaryRow.detailsRow
   } else {
-    const documentFragment = createDetailsRow(item)
-    trElement.detailsRow = documentFragment.firstElementChild
-    tbodyElement.insertBefore(documentFragment, trElement.nextSibling)
+    summaryRow.detailsRow = createDetailsRow(item, summaryRow)
   }
 }
 
 const createSummaryRow = item => {
 
   const template = document.getElementById('summary-row-template')
-  const summaryRow = document.importNode(template.content, true)
+  const documentFragment = document.importNode(template.content, true)
+  const summaryRow = documentFragment.firstElementChild
+
+  tbodyElement.appendChild(documentFragment)
 
   const tdVersionElement = summaryRow.querySelector('td:nth-child(1)')
   const tdTimestampElement = summaryRow.querySelector('td:nth-child(2)')
@@ -58,26 +60,49 @@ const createSummaryRow = item => {
   tdFrameCountElement.innerText = item.frameCount
   tdFPSElement.innerText = fps.toFixed(2)
 
-  const trElement = summaryRow.firstElementChild
-  trElement.addEventListener('click', () => onRowClick(item, trElement))
+  summaryRow.addEventListener('click', () => onRowClick(item, summaryRow))
 
   return summaryRow
 }
 
-const createDetailsRow = item => {
+const drawImageDataURL = (canvas, imageDataURL) => {
+  const ctx = canvas.getContext('2d')
+  const dx = 0
+  const dy = 0
+  const dWidth = canvas.width
+  const dHeight = canvas.height
+  const image = new Image()
+  image.onload = () => ctx.drawImage(image, dx, dy, dWidth, dHeight)
+  image.src = imageDataURL
+}
+
+const createDetailsRow = (item, summaryRow) => {
+
+  const makeSelector = (row, col, more = '') =>
+    `table tr:nth-child(${row}) td:nth-child(${col}) ${more}`
+
   const template = document.getElementById('details-row-template')
-  const detailsRow = document.importNode(template.content, true)
-  const tdUserAgentElement = detailsRow.querySelector('.analytics-inner-table tr:nth-child(1) td:nth-child(1)')
+  const documentFragment = document.importNode(template.content, true)
+  const detailsRow = documentFragment.firstElementChild
+
+  tbodyElement.insertBefore(documentFragment, summaryRow.nextSibling)
+
+  const tdUserAgentElement = detailsRow.querySelector(makeSelector(1, 1))
+  const canvasElement = detailsRow.querySelector(makeSelector(2, 1, 'canvas'))
+  const initialValuesSvgElement = detailsRow.querySelector(makeSelector(2, 2, 'svg'))
+  const solutionSvgElement = detailsRow.querySelector(makeSelector(2, 3, 'svg'))
+
   tdUserAgentElement.innerText = item.userAgent
+  drawImageDataURL(canvasElement, item.imageDataURL)
+  drawInitialValues(initialValuesSvgElement, item.solution)
+  drawInitialValues(solutionSvgElement, item.solution)
+  drawSolution(solutionSvgElement, item.solution)
+
   return detailsRow
 }
 
-const populateTable = data => {
-  for (const item of data) {
-    const documentFragment = createSummaryRow(item)
-    tbodyElement.appendChild(documentFragment)
-  }
-}
+const populateTable = data =>
+  data.forEach(createSummaryRow)
 
 const refreshTable = async () => {
   const { data } = await axios.get('/api/scanMetrics')
@@ -101,8 +126,8 @@ const onIdle = () => {
 const main = async () => {
   refreshButton.addEventListener('click', onRefresh)
   deleteAllButton.addEventListener('click', onDeleteAll)
-  refreshTable()
   onIdle()
+  refreshTable()
 }
 
 main()
