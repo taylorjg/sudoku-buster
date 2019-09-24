@@ -4,7 +4,8 @@ const configureApi = db => {
 
   const postScanMetrics = async (req, res, next) => {
     try {
-      await db.writeScanMetrics(req.body)
+      const userAgent = req.headers['user-agent'] || ''
+      await db.writeScanMetrics({ ...req.body, userAgent })
       res.status(201).end()
     } catch (error) {
       next(error)

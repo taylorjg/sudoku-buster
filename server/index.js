@@ -1,5 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const morgan = require('morgan')
 const sslRedirect = require('heroku-ssl-redirect')
 const path = require('path')
 
@@ -16,6 +17,7 @@ const main = async () => {
   const apiRouter = configureApi(db)
 
   const app = express()
+  app.use(morgan('dev'))
   app.use(sslRedirect(['production'], 301))
   app.use(bodyParser.json({ limit: '1mb' }))
   app.use('/api', apiRouter)

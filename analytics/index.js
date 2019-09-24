@@ -17,46 +17,65 @@ const clearTable = () => {
   }
 }
 
+const onRowClick = (item, trElement) => {
+  if (trElement.detailsRow) {
+    tbodyElement.removeChild(trElement.detailsRow)
+    delete trElement.detailsRow
+  } else {
+    const documentFragment = createDetailsRow(item)
+    trElement.detailsRow = documentFragment.firstElementChild
+    tbodyElement.insertBefore(documentFragment, trElement.nextSibling)
+  }
+}
+
+const createSummaryRow = item => {
+
+  const template = document.getElementById('summary-row-template')
+  const summaryRow = document.importNode(template.content, true)
+
+  const tdVersionElement = summaryRow.querySelector('td:nth-child(1)')
+  const tdTimestampElement = summaryRow.querySelector('td:nth-child(2)')
+  const tdOutcomeElement = summaryRow.querySelector('td:nth-child(3)')
+  const tdDurationElement = summaryRow.querySelector('td:nth-child(4)')
+  const tdFrameCountElement = summaryRow.querySelector('td:nth-child(5)')
+  const tdFPSElement = summaryRow.querySelector('td:nth-child(6)')
+  const tdActionElement = summaryRow.querySelector('td:nth-child(7)')
+
+  const timestamp = moment
+    .utc(item.timestamp)
+    .format('DD-MMM-YYYY HH:mm:ss')
+    .toUpperCase()
+
+  const fps = item.frameCount / (item.duration / 1000)
+
+  const deleteButton = tdActionElement.querySelector('button')
+  deleteButton.addEventListener('click', () => onDeleteById(item._id))
+
+  tdVersionElement.innerText = item.version
+  tdTimestampElement.innerText = timestamp
+  tdOutcomeElement.innerText = item.outcome
+  tdDurationElement.innerText = item.duration.toFixed(2)
+  tdFrameCountElement.innerText = item.frameCount
+  tdFPSElement.innerText = fps.toFixed(2)
+
+  const trElement = summaryRow.firstElementChild
+  trElement.addEventListener('click', () => onRowClick(item, trElement))
+
+  return summaryRow
+}
+
+const createDetailsRow = item => {
+  const template = document.getElementById('details-row-template')
+  const detailsRow = document.importNode(template.content, true)
+  const tdUserAgentElement = detailsRow.querySelector('.analytics-inner-table tr:nth-child(1) td:nth-child(1)')
+  tdUserAgentElement.innerText = item.userAgent
+  return detailsRow
+}
+
 const populateTable = data => {
   for (const item of data) {
-
-    const trElement = document.createElement('tr')
-    const tdVersionElement = document.createElement('td')
-    const tdTimestampElement = document.createElement('td')
-    const tdOutcomeElement = document.createElement('td')
-    const tdDurationElement = document.createElement('td')
-    const tdFrameCountElement = document.createElement('td')
-    const tdFPSElement = document.createElement('td')
-    const tdActionElement = document.createElement('td')
-
-    const timestamp = moment
-      .utc(item.timestamp)
-      .format('DD-MMM-YYYY HH:mm:ss')
-      .toUpperCase()
-
-    const fps = item.frameCount / (item.duration / 1000)
-
-    const deleteButton = document.createElement('button')
-    deleteButton.setAttribute('class', 'btn btn-xs btn-danger')
-    deleteButton.innerText = 'Delete'
-    deleteButton.addEventListener('click', () => onDeleteById(item._id))
-
-    tdVersionElement.innerText = item.version
-    tdTimestampElement.innerText = timestamp
-    tdOutcomeElement.innerText = item.outcome
-    tdDurationElement.innerText = item.duration.toFixed(2)
-    tdFrameCountElement.innerText = item.frameCount
-    tdFPSElement.innerText = fps.toFixed(2)
-    tdActionElement.appendChild(deleteButton)
-
-    trElement.appendChild(tdVersionElement)
-    trElement.appendChild(tdTimestampElement)
-    trElement.appendChild(tdOutcomeElement)
-    trElement.appendChild(tdDurationElement)
-    trElement.appendChild(tdFrameCountElement)
-    trElement.appendChild(tdFPSElement)
-    trElement.appendChild(tdActionElement)
-    tbodyElement.appendChild(trElement)
+    const documentFragment = createSummaryRow(item)
+    tbodyElement.appendChild(documentFragment)
   }
 }
 

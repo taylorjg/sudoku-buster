@@ -147,3 +147,11 @@ body {
 #error-panel .close {
   margin-left: 10px;
 }
+
+.analytics-table {
+  margin-top: 2rem;
+}
+
+.analytics-inner-table {
+  margin-left: 5rem;
+}

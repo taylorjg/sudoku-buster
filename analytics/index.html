@@ -7,6 +7,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
   <link rel="stylesheet" href="styles.css" />
+  <template id="summary-row-template">
+    <tr>
+      <td>version</td>
+      <td>timestamp</td>
+      <td>outcome</td>
+      <td>duration</td>
+      <td>frameCount</td>
+      <td>fps</td>
+      <td><button class="btn btn-xs btn-danger">Delete</button></td>
+    </tr>
+  </template>
+  <template id="details-row-template">
+    <tr>
+      <td colspan="7">
+        <table class="analytics-inner-table">
+          <tbody>
+            <tr>
+              <td>userAgent</td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </template>
 </head>
 
 <body>
@@ -31,7 +55,7 @@
     </div>
     <div class="row">
       <div class="col-md-12">
-        <table class="table table-striped table-condensed">
+        <table class="table table-striped table-condensed analytics-table">
           <thead>
             <tr>
               <th>Version</th>

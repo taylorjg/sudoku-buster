@@ -32,7 +32,7 @@ const configureDb = async url => {
     },
 
     getScanMetrics: () => {
-      return scanMetricsCollection.find().toArray()
+      return scanMetricsCollection.find().sort('timestamp', -1).toArray()
     },
 
     getScanMetricsById: id => {
