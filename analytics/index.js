@@ -1,14 +1,18 @@
 import axios from 'axios'
 import moment from 'moment'
 import { drawInitialValues, drawSolution } from '../src/drawSvg'
+import { showErrorPanel, hideErrorPanel } from '../src/errorPanel'
 
 let operationInProgress = false
 
 const onDeleteAll = async () => {
   try {
     operationInProgress = true
+    hideErrorPanel()
     await axios.delete('/api/scanMetrics')
     refreshTable()
+  } catch (error) {
+    showErrorPanel(error)
   } finally {
     operationInProgress = false
   }
@@ -17,8 +21,11 @@ const onDeleteAll = async () => {
 const onDeleteById = async id => {
   try {
     operationInProgress = true
+    hideErrorPanel()
     await axios.delete(`/api/scanMetrics/${id}`)
     refreshTable()
+  } catch (error) {
+    showErrorPanel(error)
   } finally {
     operationInProgress = false
   }
@@ -131,9 +138,12 @@ const populateTable = data =>
 const refreshTable = async () => {
   try {
     operationInProgress = true
+    hideErrorPanel()
     const { data } = await axios.get('/api/scanMetrics')
     clearTable()
     populateTable(data)
+  } catch (error) {
+    showErrorPanel(error)
   } finally {
     operationInProgress = false
   }
@@ -151,7 +161,7 @@ const tbodyElement = document.querySelector('table tbody')
 const onIdle = () => {
   loadingSpinnerElement.style.display = operationInProgress ? 'inline-block' : 'none'
   refreshTable.disabled = operationInProgress
-  deleteAllButton.disabled = operationInProgress || !tbodyElement.hasChildNodes()
+  deleteAllButton.disabled = operationInProgress || tbodyElement.childElementCount === 0
   const deleteButtons = tbodyElement.querySelectorAll('tr td button')
   deleteButtons.forEach(deleteButton => deleteButton.disabled = operationInProgress)
   requestAnimationFrame(onIdle)
