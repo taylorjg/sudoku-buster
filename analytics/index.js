@@ -61,6 +61,8 @@ const createSummaryRow = item => {
     .format('DD-MMM-YYYY HH:mm:ss')
     .toUpperCase()
 
+  const duration = (item.duration / 1000).toFixed(2)
+
   const fps = item.frameCount / (item.duration / 1000)
 
   tdActionElement.querySelector('button')
@@ -74,7 +76,7 @@ const createSummaryRow = item => {
   const completed = item.outcome === 'completed'
   outcomeCompletedElement.style.display = completed ? 'inline' : 'none'
   outcomeCancelledElement.style.display = completed ? 'none' : 'inline'
-  tdDurationElement.innerText = item.duration.toFixed(2)
+  tdDurationElement.innerText = duration
   tdFrameCountElement.innerText = item.frameCount
   tdFPSElement.innerText = fps.toFixed(2)
 
