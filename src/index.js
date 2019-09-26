@@ -92,20 +92,20 @@ const logPerformanceMetrics = async () => {
 const processImage = async (imageTensor, svgElement) => {
   try {
     const digitPredictions = await scanPuzzle(getCellsModel(), imageTensor, svgElement, scanPuzzleOptions)
-    performance.mark('after scanPuzzle')
+    performance.mark('scanPuzzle')
     // https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Ordinary_Sudoku
     if (digitPredictions.length < 17) return
     if (!satisfiesAllConstraints(digitPredictions)) return
-    performance.mark('after satisfiesAllConstraints')
+    performance.mark('satisfiesAllConstraints')
     const puzzle = digitPredictionsToPuzzle(digitPredictions)
     const initialValues = getInitialValues(puzzle)
     const solutions = solve(puzzle, { numSolutions: 1 })
-    performance.mark('after solve')
+    performance.mark('solve')
     if (solutions.length !== 1) return
     const solution = solutions[0]
     UI.setDisplayMode(UI.DISPLAY_MODE_SOLUTION)
     UI.drawPuzzle(initialValues, solution)
-    performance.mark('after drawPuzzle')
+    performance.mark('drawPuzzle')
     const imageDataURL = await imageTensorToDataURL(imageTensor)
     return {
       imageDataURL,
@@ -150,7 +150,7 @@ const onVideoClick = async elements => {
       stats && stats.begin()
       performance.clearMarks()
       const gridImageTensor = await captureWebcam()
-      performance.mark('after captureWebcam')
+      performance.mark('captureWebcam')
       if (!gridImageTensor) break
       disposables.push(gridImageTensor)
       result = await processImage(gridImageTensor, elements.videoOverlayGuidesElement)

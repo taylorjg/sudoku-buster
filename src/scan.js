@@ -65,18 +65,18 @@ export const scanPuzzle = async (cellsModel, imageTensor, svgElement, drawingOpt
   const disposables = []
   try {
     const imageData = await I.imageTensorToImageData(imageTensor)
-    performance.mark('after imageTensorToImageData')
+    performance.mark('imageTensorToImageData')
     const boundingBoxInfo = await findAndCheckBoundingBox(imageData, svgElement)
-    performance.mark('after findAndCheckBoundingBox')
+    performance.mark('findAndCheckBoundingBox')
     handleDrawingOptions(boundingBoxInfo, svgElement, drawingOptions)
-    performance.mark('after handleDrawingOptions')
+    performance.mark('handleDrawingOptions')
     const { imageDataCorrected } = boundingBoxInfo
     const imageTensorCorrected = I.imageDataToImageTensor(imageDataCorrected)
     disposables.push(imageTensorCorrected)
-    performance.mark('after imageDataToImageTensor')
+    performance.mark('imageDataToImageTensor')
     const boundingBox = CALC.inset(0, 0, imageDataCorrected.width, imageDataCorrected.height, 2, 2)
     const indexedDigitPredictions = await predictDigits(disposables, cellsModel, imageTensorCorrected, boundingBox)
-    performance.mark('after predictDigits')
+    performance.mark('predictDigits')
     return indexedDigitPredictions
   } finally {
     disposables.forEach(disposable => disposable.dispose())
