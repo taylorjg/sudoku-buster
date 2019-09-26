@@ -1,5 +1,7 @@
+import * as R from 'ramda'
 import axios from 'axios'
 import moment from 'moment'
+import Chart from 'chart.js'
 import { drawInitialValues, drawSolution } from '../src/drawSvg'
 import { showErrorPanel, hideErrorPanel } from '../src/errorPanel'
 
@@ -103,6 +105,33 @@ const drawImageDataURL = (canvas, imageDataURL) => {
   image.src = imageDataURL
 }
 
+// https://bl.ocks.org/emeeks/8cdec64ed6daf955830fa723252a4ab3
+const COLOURS = [
+  '#a6cee3',
+  '#1f78b4',
+  '#b2df8a',
+  '#33a02c',
+  '#fb9a99',
+  '#e31a1c',
+  '#fdbf6f',
+  '#ff7f00',
+  '#cab2d6',
+  '#6a3d9a',
+  '#ffff99',
+  '#b15928'
+]
+
+const makeDatasets = markss => {
+  const numDatasets = Math.max(...markss.map(marks => marks.length))
+  return R.range(1, numDatasets).map(datasetIndex => ({
+    backgroundColor: COLOURS[datasetIndex],
+    data: markss.map(marks => {
+      if (datasetIndex >= marks.length) return 0
+      return marks[datasetIndex].startTime - marks[datasetIndex - 1].startTime
+    })
+  }))
+}
+
 const createDetailsRow = (item, summaryRow) => {
 
   const makeSelector = (row, col, more = '') =>
@@ -115,13 +144,61 @@ const createDetailsRow = (item, summaryRow) => {
   tbodyElement.insertBefore(documentFragment, summaryRow.nextSibling)
 
   const tdUserAgentElement = detailsRow.querySelector(makeSelector(1, 1))
-  const canvasElement = detailsRow.querySelector(makeSelector(2, 1, 'canvas'))
-  const initialValuesSvgElement = detailsRow.querySelector(makeSelector(2, 2, 'svg'))
-  const solutionSvgElement = detailsRow.querySelector(makeSelector(2, 3, 'svg'))
+  const chartCanvasElement = detailsRow.querySelector(makeSelector(2, 1, 'canvas'))
+  const imageCanvasElement = detailsRow.querySelector(makeSelector(2, 2, 'canvas'))
+  const initialValuesSvgElement = detailsRow.querySelector(makeSelector(2, 3, 'svg'))
+  const solutionSvgElement = detailsRow.querySelector(makeSelector(2, 4, 'svg'))
 
   tdUserAgentElement.innerText = item.userAgent
 
-  drawImageDataURL(canvasElement, item.imageDataURL)
+  const datasets = makeDatasets(item.markss)
+  const ctx = chartCanvasElement.getContext('2d')
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: R.range(0, datasets[0].data.length).map(R.inc),
+      datasets
+    },
+    options: {
+      legend: {
+        display: false
+      },
+      responsive: false,
+      events: [],
+      animation: {
+        duration: 0
+      },
+      scales: {
+        xAxes: [{
+          stacked: true,
+          categoryPercentage: 1.0,
+          barPercentage: 1.0,
+          gridLines: {
+            display: false,
+            drawBorder: false,
+            drawTicks: false
+          },
+          ticks: {
+            display: false,
+          }
+        }],
+        yAxes: [{
+          stacked: true,
+          gridLines: {
+            display: false,
+            drawBorder: false,
+            drawTicks: false
+          },
+          ticks: {
+            display: false,
+          }
+        }]
+      }
+    }
+  })
+
+  drawImageDataURL(imageCanvasElement, item.imageDataURL)
 
   if (item.solution) {
     drawInitialValues(initialValuesSvgElement, item.solution)

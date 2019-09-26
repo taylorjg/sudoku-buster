@@ -116,14 +116,22 @@ body {
   text-anchor: middle;
 }
 
+.thumbnail-chart {
+  display: unset !important;
+  height: 200px;
+  margin: .5rem;
+}
+
 .thumbnail-image {
   width: 200px;
   height: 200px;
+  margin: .5rem;
 }
 
 .thumbnail-grid {
   width: 200px;
   height: 200px;
+  margin: .5rem;
 }
 
 .thumbnail-grid .sudoku__digit {
