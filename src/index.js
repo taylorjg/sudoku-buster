@@ -39,9 +39,9 @@ const hideStats = () => {
   }
 }
 
-let startTime = undefined
-let frameCount = undefined
-let markss = undefined
+let startTime = 0
+let frameCount = 0
+let markss = []
 
 const resetScanMetrics = () => {
   startTime = performance.now()
@@ -64,7 +64,7 @@ const saveScanMetrics = async (outcome, imageDataURL, solution) => {
       outcome,
       duration,
       frameCount,
-      markss,
+      markss: markss.slice(-100),
       imageDataURL,
       solution
     }

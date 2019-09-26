@@ -3,7 +3,13 @@ import axios from 'axios'
 import moment from 'moment'
 import Chart from 'chart.js'
 import { drawInitialValues, drawSolution } from '../src/drawSvg'
+import { createSvgElement } from '../src/drawSvg'
 import { showErrorPanel, hideErrorPanel } from '../src/errorPanel'
+
+const PLACEHOLDER_URL_1 = 'https://via.placeholder.com/400x200.png?text=Performance+Data'
+const PLACEHOLDER_URL_2 = 'https://via.placeholder.com/200x200.png?text=Webcam+Image'
+const PLACEHOLDER_URL_3 = 'https://via.placeholder.com/200x200.png?text=Given+Values'
+const PLACEHOLDER_URL_4 = 'https://via.placeholder.com/200x200.png?text=Solution'
 
 let operationInProgress = false
 
@@ -94,15 +100,20 @@ const createSummaryRow = item => {
   return summaryRow
 }
 
-const drawImageDataURL = (canvas, imageDataURL) => {
-  const ctx = canvas.getContext('2d')
+const drawImageOnCanvas = (canvasElement, src) => {
+  const ctx = canvasElement.getContext('2d')
   const dx = 0
   const dy = 0
-  const dWidth = canvas.width
-  const dHeight = canvas.height
+  const dWidth = canvasElement.width
+  const dHeight = canvasElement.height
   const image = new Image()
   image.onload = () => ctx.drawImage(image, dx, dy, dWidth, dHeight)
-  image.src = imageDataURL
+  image.src = src
+}
+
+const drawImageOnSvg = (svgElement, src) => {
+  const imageElement = createSvgElement('image', { href: src })
+  svgElement.appendChild(imageElement)
 }
 
 // https://bl.ocks.org/emeeks/8cdec64ed6daf955830fa723252a4ab3
@@ -124,40 +135,26 @@ const COLOURS = [
 const makeDatasets = markss => {
   const numDatasets = Math.max(...markss.map(marks => marks.length))
   return R.range(1, numDatasets).map(datasetIndex => ({
-    backgroundColor: COLOURS[datasetIndex],
+    backgroundColor: COLOURS[datasetIndex - 1],
     data: markss.map(marks => {
       if (datasetIndex >= marks.length) return 0
-      return marks[datasetIndex].startTime - marks[datasetIndex - 1].startTime
-    })
+      const thisStartTime = marks[datasetIndex].startTime
+      const previousStartTime = marks[datasetIndex - 1].startTime
+      const diffTime = thisStartTime - previousStartTime
+      return Number(diffTime.toFixed(2))
+    }),
+    label: markss.find(marks => datasetIndex < marks.length)[datasetIndex].name
   }))
 }
 
-const createDetailsRow = (item, summaryRow) => {
-
-  const makeSelector = (row, col, more = '') =>
-    `table tr:nth-child(${row}) td:nth-child(${col}) ${more}`
-
-  const template = document.getElementById('details-row-template')
-  const documentFragment = document.importNode(template.content, true)
-  const detailsRow = documentFragment.firstElementChild
-
-  tbodyElement.insertBefore(documentFragment, summaryRow.nextSibling)
-
-  const tdUserAgentElement = detailsRow.querySelector(makeSelector(1, 1))
-  const chartCanvasElement = detailsRow.querySelector(makeSelector(2, 1, 'canvas'))
-  const imageCanvasElement = detailsRow.querySelector(makeSelector(2, 2, 'canvas'))
-  const initialValuesSvgElement = detailsRow.querySelector(makeSelector(2, 3, 'svg'))
-  const solutionSvgElement = detailsRow.querySelector(makeSelector(2, 4, 'svg'))
-
-  tdUserAgentElement.innerText = item.userAgent
-
-  const datasets = makeDatasets(item.markss)
-  const ctx = chartCanvasElement.getContext('2d')
-
+const drawPerformanceData = (canvasElement, markss) => {
+  const datasets = makeDatasets(markss)
+  const labels = R.range(0, datasets[0].data.length).map(R.inc)
+  const ctx = canvasElement.getContext('2d')
   new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: R.range(0, datasets[0].data.length).map(R.inc),
+      labels,
       datasets
     },
     options: {
@@ -165,7 +162,6 @@ const createDetailsRow = (item, summaryRow) => {
         display: false
       },
       responsive: false,
-      events: [],
       animation: {
         duration: 0
       },
@@ -197,13 +193,46 @@ const createDetailsRow = (item, summaryRow) => {
       }
     }
   })
+}
 
-  drawImageDataURL(imageCanvasElement, item.imageDataURL)
+const createDetailsRow = (item, summaryRow) => {
+
+  const makeSelector = (row, col, more = '') =>
+    `table tr:nth-child(${row}) td:nth-child(${col}) ${more}`
+
+  const template = document.getElementById('details-row-template')
+  const documentFragment = document.importNode(template.content, true)
+  const detailsRow = documentFragment.firstElementChild
+
+  tbodyElement.insertBefore(documentFragment, summaryRow.nextSibling)
+
+  const tdUserAgentElement = detailsRow.querySelector(makeSelector(1, 1))
+  const chartCanvasElement = detailsRow.querySelector(makeSelector(2, 1, 'canvas'))
+  const imageCanvasElement = detailsRow.querySelector(makeSelector(2, 2, 'canvas'))
+  const initialValuesSvgElement = detailsRow.querySelector(makeSelector(2, 3, 'svg'))
+  const solutionSvgElement = detailsRow.querySelector(makeSelector(2, 4, 'svg'))
+
+  tdUserAgentElement.innerText = item.userAgent
+
+  if (item.markss.length > 0) {
+    drawPerformanceData(chartCanvasElement, item.markss)
+  } else {
+    drawImageOnCanvas(chartCanvasElement, PLACEHOLDER_URL_1)
+  }
+
+  if (item.imageDataURL) {
+    drawImageOnCanvas(imageCanvasElement, item.imageDataURL)
+  } else {
+    drawImageOnCanvas(imageCanvasElement, PLACEHOLDER_URL_2)
+  }
 
   if (item.solution) {
     drawInitialValues(initialValuesSvgElement, item.solution)
     drawInitialValues(solutionSvgElement, item.solution)
     drawSolution(solutionSvgElement, item.solution)
+  } else {
+    drawImageOnSvg(initialValuesSvgElement, PLACEHOLDER_URL_3)
+    drawImageOnSvg(solutionSvgElement, PLACEHOLDER_URL_4)
   }
 
   return detailsRow

@@ -118,6 +118,7 @@ body {
 
 .thumbnail-chart {
   display: unset !important;
+  width: 400px;
   height: 200px;
   margin: .5rem;
 }
