@@ -123,10 +123,7 @@ const processImage = async (imageTensor, svgElement) => {
 const onVideoClick = async elements => {
 
   if (isWebcamStarted()) {
-    stopWebcam()
-    UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
-    hideStats()
-    await saveScanMetrics('cancelled')
+    log.info('[onVideoClick] webcam already started - bailing')
     return
   }
 
@@ -174,11 +171,19 @@ const onVideoClick = async elements => {
   log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
 }
 
+const onCancel = async () => {
+  stopWebcam()
+  UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+  hideStats()
+  await saveScanMetrics('cancelled')
+}
+
 const onSudokuClick = () =>
   UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
 
 UI.setVideoClickHandler(onVideoClick)
 UI.setSudokuClickHandler(onSudokuClick)
+UI.setCancelButtonClickHandler(onCancel)
 
 const waitForOpenCVToFinishRunning = async () => {
   for (; ;) {

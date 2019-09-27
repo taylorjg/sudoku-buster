@@ -266,7 +266,7 @@ const tbodyElement = document.querySelector('table tbody')
 
 const onIdle = () => {
   loadingSpinnerElement.style.display = operationInProgress ? 'inline-block' : 'none'
-  refreshTable.disabled = operationInProgress
+  refreshButton.disabled = operationInProgress
   deleteAllButton.disabled = operationInProgress || tbodyElement.childElementCount === 0
   const deleteButtons = tbodyElement.querySelectorAll('tr td button')
   deleteButtons.forEach(deleteButton => deleteButton.disabled = operationInProgress)

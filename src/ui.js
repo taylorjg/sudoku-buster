@@ -10,6 +10,7 @@ export const showMainContent = () => {
   mainContentElement.style.display = 'block'
 }
 
+const cancelButton = document.getElementById('cancel-btn')
 const videoElement = document.getElementById('video')
 const videoOverlayGuidesElement = document.getElementById('video-overlay-guides')
 const videoOverlayInstructionsElement = document.getElementById('video-overlay-instructions')
@@ -24,6 +25,7 @@ export const setDisplayMode = displayMode => {
     const show = displayModes.includes(displayMode)
     element.style.display = show ? 'block' : 'none'
   }
+  showOrHide(cancelButton, DISPLAY_MODE_VIDEO)
   showOrHide(videoElement, DISPLAY_MODE_INSTRUCTIONS, DISPLAY_MODE_VIDEO)
   showOrHide(videoOverlayGuidesElement, DISPLAY_MODE_VIDEO)
   showOrHide(videoOverlayInstructionsElement, DISPLAY_MODE_INSTRUCTIONS)
@@ -37,6 +39,15 @@ export const drawPuzzle = (initialValues, solution) => {
 
 export const setVideoClickHandler = handler => {
   videoElement.addEventListener('click', () =>
+    handler({
+      videoElement,
+      videoOverlayGuidesElement,
+      solutionElement
+    }))
+}
+
+export const setCancelButtonClickHandler = handler => {
+  cancelButton.addEventListener('click', () =>
     handler({
       videoElement,
       videoOverlayGuidesElement,

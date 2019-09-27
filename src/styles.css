@@ -69,6 +69,12 @@ body {
   position: relative;
 }
 
+#cancel-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: .5rem;
+}
+
 #video {
   position: absolute;
   border: 1px solid black;
