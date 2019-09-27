@@ -70,7 +70,7 @@ const saveScanMetrics = async (outcome, imageDataURL, solution) => {
     }
     await axios.post('/api/scanMetrics', JSON.stringify(data), config)
   } catch (error) {
-    log.error(`[postScanMetrics] ${error}`)
+    log.error(`[saveScanMetrics] ${error.message}`)
   }
 }
 
@@ -172,10 +172,15 @@ const onVideoClick = async elements => {
 }
 
 const onCancel = async () => {
-  stopWebcam()
-  UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
-  hideStats()
-  await saveScanMetrics('cancelled')
+  try {
+    stopWebcam()
+    hideStats()
+    UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+    await saveScanMetrics('cancelled')
+  } catch (error) {
+    log.error(`[onCancel] ${error.message}`)
+    showErrorPanel(error.message)
+  }
 }
 
 const onSudokuClick = () =>
