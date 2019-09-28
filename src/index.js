@@ -109,7 +109,7 @@ const processImage = async (imageTensor, svgElement) => {
     const imageDataURL = await imageTensorToDataURL(imageTensor)
     return {
       imageDataURL,
-      solution // [{coords, value, isInitialValue}]
+      solution
     }
   } catch (error) {
     log.error(`[processImage] ${error.message}`)
@@ -162,10 +162,16 @@ const onVideoClick = async elements => {
     await tf.nextFrame()
   }
 
-  if (result) {
-    stopWebcam()
-    hideStats()
-    await saveScanMetrics('completed', result.imageDataURL, result.solution)
+  if (result && isWebcamStarted()) {
+    try {
+      UI.hideCancelButton(onCancel)
+      stopWebcam()
+      hideStats()
+      await saveScanMetrics('completed', result.imageDataURL, result.solution)
+    } catch (error) {
+      log.error(`[onVideoClick] ${error.message}`)
+      showErrorPanel(error.message)
+    }
   }
 
   log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
