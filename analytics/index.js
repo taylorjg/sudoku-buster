@@ -37,7 +37,7 @@ const onDeleteAll = async () => {
     operationInProgress = true
     hideErrorPanel()
     await axios.delete('/api/scanMetrics')
-    refreshTable()
+    await refreshTable()
   } catch (error) {
     showErrorPanel(error)
   } finally {
@@ -50,7 +50,7 @@ const onDeleteById = async id => {
     operationInProgress = true
     hideErrorPanel()
     await axios.delete(`/api/scanMetrics/${id}`)
-    refreshTable()
+    await refreshTable()
   } catch (error) {
     showErrorPanel(error)
   } finally {
