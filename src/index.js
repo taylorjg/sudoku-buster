@@ -132,6 +132,7 @@ const onVideoClick = async elements => {
     resetScanMetrics()
     await startWebcam(elements.videoElement)
     UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
+    UI.showCancelButton(onCancel)
     showStats()
   } catch (error) {
     log.error(`[onVideoClick] ${error.message}`)
@@ -161,10 +162,9 @@ const onVideoClick = async elements => {
     await tf.nextFrame()
   }
 
-  stopWebcam()
-  hideStats()
-
   if (result) {
+    stopWebcam()
+    hideStats()
     await saveScanMetrics('completed', result.imageDataURL, result.solution)
   }
 
@@ -173,9 +173,10 @@ const onVideoClick = async elements => {
 
 const onCancel = async () => {
   try {
+    UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+    UI.hideCancelButton(onCancel)
     stopWebcam()
     hideStats()
-    UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
     await saveScanMetrics('cancelled')
   } catch (error) {
     log.error(`[onCancel] ${error.message}`)
@@ -188,7 +189,6 @@ const onSudokuClick = () =>
 
 UI.setVideoClickHandler(onVideoClick)
 UI.setSudokuClickHandler(onSudokuClick)
-UI.setCancelButtonClickHandler(onCancel)
 
 const waitForOpenCVToFinishRunning = async () => {
   for (; ;) {

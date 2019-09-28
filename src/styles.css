@@ -184,3 +184,23 @@ body {
 .analytics-inner-table {
   margin-left: 5rem;
 }
+
+.legend-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.legend-item {
+  width: 33%;
+  display: flex;
+  align-items: center;
+}
+
+.legend-item__colour {
+  border-bottom-width: .4rem;
+  border-bottom-style: solid;
+  width: 10rem;
+  height: 0;
+  margin-right: 1rem;
+}

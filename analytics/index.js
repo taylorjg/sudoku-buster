@@ -13,6 +13,25 @@ const PLACEHOLDER_URL_4 = 'https://via.placeholder.com/200x200.png?text=Solution
 
 let operationInProgress = false
 
+const legendContainerElement = document.getElementById('legend-container')
+
+const populateLegend = data => {
+  if (legendContainerElement.firstElementChild) return
+  const completedItem = data.find(item => item.outcome === 'completed')
+  if (completedItem) {
+    const marks = R.last(completedItem.markss)
+    marks.slice(1).forEach((mark, index) => {
+      const template = document.getElementById('legend-item-template')
+      const documentFragment = document.importNode(template.content, true)
+      const legendColourElement = documentFragment.querySelector('.legend-item__colour')
+      const legendNameElement = documentFragment.querySelector('.legend-item__name')
+      legendColourElement.style.borderBottomColor = COLOURS[index]
+      legendNameElement.innerText = mark.name
+      legendContainerElement.appendChild(documentFragment)
+    })
+  }
+}
+
 const onDeleteAll = async () => {
   try {
     operationInProgress = true
@@ -248,6 +267,7 @@ const refreshTable = async () => {
     const { data } = await axios.get('/api/scanMetrics')
     clearTable()
     populateTable(data)
+    populateLegend(data)
   } catch (error) {
     showErrorPanel(error)
   } finally {

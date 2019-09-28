@@ -44,6 +44,8 @@ export const stopWebcam = () => {
   if (webcam) {
     webcam.stop()
     webcam = undefined
+  } else {
+    throw new Error('Webcam not started!')
   }
 }
 

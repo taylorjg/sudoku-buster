@@ -25,7 +25,6 @@ export const setDisplayMode = displayMode => {
     const show = displayModes.includes(displayMode)
     element.style.display = show ? 'block' : 'none'
   }
-  showOrHide(cancelButton, DISPLAY_MODE_VIDEO)
   showOrHide(videoElement, DISPLAY_MODE_INSTRUCTIONS, DISPLAY_MODE_VIDEO)
   showOrHide(videoOverlayGuidesElement, DISPLAY_MODE_VIDEO)
   showOrHide(videoOverlayInstructionsElement, DISPLAY_MODE_INSTRUCTIONS)
@@ -46,13 +45,14 @@ export const setVideoClickHandler = handler => {
     }))
 }
 
-export const setCancelButtonClickHandler = handler => {
-  cancelButton.addEventListener('click', () =>
-    handler({
-      videoElement,
-      videoOverlayGuidesElement,
-      solutionElement
-    }))
+export const showCancelButton = handler => {
+  cancelButton.style.display = 'block'
+  cancelButton.addEventListener('click', handler)
+}
+
+export const hideCancelButton = handler => {
+  cancelButton.style.display = 'none'
+  cancelButton.removeEventListener('click', handler)
 }
 
 export const setSudokuClickHandler = handler => {

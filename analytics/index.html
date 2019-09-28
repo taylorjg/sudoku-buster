@@ -12,6 +12,12 @@
       display: none;
     }
   </style>
+  <template id="legend-item-template">
+    <div class="legend-item">
+      <span class="legend-item__colour"></span>
+      <span class="legend-item__name"></span>
+    </div>
+  </template>
   <template id="summary-row-template">
     <tr>
       <td>version</td>
@@ -74,6 +80,14 @@
           Delete All
           <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
         </button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <fieldset>
+          <legend>Legend for Performance Marks</legend>
+          <div id="legend-container" class="legend-container"></div>
+        </fieldset>
       </div>
     </div>
     <div class="row">
