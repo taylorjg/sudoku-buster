@@ -49,7 +49,7 @@ const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingB
     gridImageTensor,
     boundingBox)
   disposables.push(gridSquareImageTensors)
-  const batchSize = 9 // 81
+  const batchSize = 81
   const outputs = cellsModel.predict(gridSquareImageTensors, { batchSize })
   disposables.push(outputs)
   const outputsArgMax = outputs.argMax(1)
