@@ -1,19 +1,29 @@
 import * as R from 'ramda'
-import axios from 'axios'
 import moment from 'moment'
 import Chart from 'chart.js'
 import { drawInitialValues, drawSolution } from '../src/drawSvg'
 import { createSvgElement } from '../src/drawSvg'
 import { showErrorPanel, hideErrorPanel } from '../src/errorPanel'
+import * as db from './db'
 
-const PLACEHOLDER_URL_1 = 'https://via.placeholder.com/400x200.png?text=Performance+Data'
+const PLACEHOLDER_URL_1 = 'https://via.placeholder.com/400x200.png?text=Performance+Marks'
 const PLACEHOLDER_URL_2 = 'https://via.placeholder.com/200x200.png?text=Webcam+Image'
 const PLACEHOLDER_URL_3 = 'https://via.placeholder.com/200x200.png?text=Given+Values'
 const PLACEHOLDER_URL_4 = 'https://via.placeholder.com/200x200.png?text=Solution'
 
-let operationInProgress = false
+let databaseCallInProgress = false
 
-const legendContainerElement = document.getElementById('legend-container')
+const doDatabaseCall = async fn => {
+  try {
+    databaseCallInProgress = true
+    hideErrorPanel()
+    await fn()
+  } catch (error) {
+    showErrorPanel(error)
+  } finally {
+    databaseCallInProgress = false
+  }
+}
 
 const populateLegend = data => {
   if (legendContainerElement.firstElementChild) return
@@ -32,31 +42,17 @@ const populateLegend = data => {
   }
 }
 
-const onDeleteAll = async () => {
-  try {
-    operationInProgress = true
-    hideErrorPanel()
-    await axios.delete('/api/scanMetrics')
+const onDeleteAll = () =>
+  doDatabaseCall(async () => {
+    await db.deleteAll()
     await refreshTable()
-  } catch (error) {
-    showErrorPanel(error)
-  } finally {
-    operationInProgress = false
-  }
-}
+  })
 
-const onDeleteById = async id => {
-  try {
-    operationInProgress = true
-    hideErrorPanel()
-    await axios.delete(`/api/scanMetrics/${id}`)
+const onDeleteById = async id =>
+  doDatabaseCall(async () => {
+    await db.deleteById(id)
     await refreshTable()
-  } catch (error) {
-    showErrorPanel(error)
-  } finally {
-    operationInProgress = false
-  }
-}
+  })
 
 const clearTable = () => {
   while (tbodyElement.firstChild) {
@@ -260,36 +256,28 @@ const createDetailsRow = (item, summaryRow) => {
 const populateTable = data =>
   data.forEach(createSummaryRow)
 
-const refreshTable = async () => {
-  try {
-    operationInProgress = true
-    hideErrorPanel()
-    const { data } = await axios.get('/api/scanMetrics')
+const refreshTable = () =>
+  doDatabaseCall(async () => {
     clearTable()
+    const data = await db.getAll()
     populateTable(data)
     populateLegend(data)
-  } catch (error) {
-    showErrorPanel(error)
-  } finally {
-    operationInProgress = false
-  }
-}
+  })
 
-const onRefresh = () => {
-  refreshTable()
-}
+const onRefresh = () => refreshTable()
 
 const loadingSpinnerElement = document.getElementById('loading-spinner')
+const legendContainerElement = document.getElementById('legend-container')
 const refreshButton = document.getElementById('refresh-btn')
 const deleteAllButton = document.getElementById('delete-all-btn')
 const tbodyElement = document.querySelector('table tbody')
 
 const onIdle = () => {
-  loadingSpinnerElement.style.display = operationInProgress ? 'inline-block' : 'none'
-  refreshButton.disabled = operationInProgress
-  deleteAllButton.disabled = operationInProgress || tbodyElement.childElementCount === 0
+  loadingSpinnerElement.style.display = databaseCallInProgress ? 'inline-block' : 'none'
+  refreshButton.disabled = databaseCallInProgress
+  deleteAllButton.disabled = databaseCallInProgress || tbodyElement.childElementCount === 0
   const deleteButtons = tbodyElement.querySelectorAll('tr td button')
-  deleteButtons.forEach(deleteButton => deleteButton.disabled = operationInProgress)
+  deleteButtons.forEach(deleteButton => deleteButton.disabled = databaseCallInProgress)
   requestAnimationFrame(onIdle)
 }
 
