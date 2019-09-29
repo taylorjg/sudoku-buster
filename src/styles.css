@@ -181,6 +181,19 @@ body {
   margin-top: 2rem;
 }
 
+.analytics-table .column-header {
+  display: flex;
+  align-items: center;
+}
+
+.analytics-table .column-header .glyphicon {
+  margin-left: .5rem;
+}
+
+.analytics-table .column-header .placeholder {
+  visibility: hidden;
+}
+
 .analytics-inner-table {
   margin-left: 5rem;
 }
