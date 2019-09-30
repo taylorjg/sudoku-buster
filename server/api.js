@@ -14,8 +14,8 @@ const configureApi = db => {
 
   const getScanMetrics = async (_, res, next) => {
     try {
-      const scanMetrics = await db.getScanMetrics()
-      res.json(scanMetrics)
+      const documents = await db.getScanMetrics()
+      res.json(documents)
     } catch (error) {
       next(error)
     }
@@ -23,8 +23,19 @@ const configureApi = db => {
 
   const getScanMetricsById = async (req, res, next) => {
     try {
-      const scanMetrics = await db.getScanMetricsById(req.params.id)
-      scanMetrics ? res.json(scanMetrics) : res.status(404).end()
+      const document = await db.getScanMetricsById(req.params.id)
+      document ? res.json(document) : res.status(404).end()
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  const getImageDataURLById = async (req, res, next) => {
+    try {
+      const document = await db.getImageDataURLById(req.params.id)
+      return document
+        ? res.json(document.imageDataURL || '')
+        : res.status(404).end()
     } catch (error) {
       next(error)
     }
@@ -53,6 +64,7 @@ const configureApi = db => {
   router.post('/scanMetrics', postScanMetrics)
   router.get('/scanMetrics', getScanMetrics)
   router.get('/scanMetrics/:id', getScanMetricsById)
+  router.get('/scanMetrics/:id/imageDataURL', getImageDataURLById)
   router.delete('/scanMetrics', deleteScanMetrics)
   router.delete('/scanMetrics/:id', deleteScanMetricsById)
 

@@ -16,7 +16,8 @@ const doDatabaseCall = async fn => {
   try {
     databaseCallInProgress = true
     hideErrorPanel()
-    await fn()
+    const data = await fn()
+    return data
   } catch (error) {
     showErrorPanel(error)
   } finally {
@@ -59,12 +60,13 @@ const clearTable = () => {
   }
 }
 
-const onRowClick = (item, summaryRow) => {
+const onRowClick = async (item, summaryRow) => {
   if (summaryRow.detailsRow) {
     tbodyElement.removeChild(summaryRow.detailsRow)
     delete summaryRow.detailsRow
   } else {
-    summaryRow.detailsRow = createDetailsRow(item, summaryRow)
+    // eslint-disable-next-line require-atomic-updates
+    summaryRow.detailsRow = await createDetailsRow(item, summaryRow)
   }
 }
 
@@ -209,7 +211,7 @@ const drawPerformanceData = (canvasElement, markss) => {
   })
 }
 
-const createDetailsRow = (item, summaryRow) => {
+const createDetailsRow = async (item, summaryRow) => {
 
   const makeSelector = (row, col, more = '') =>
     `table tr:nth-child(${row}) td:nth-child(${col}) ${more}`
@@ -234,8 +236,10 @@ const createDetailsRow = (item, summaryRow) => {
     drawImageOnCanvas(chartCanvasElement, PLACEHOLDER_URL_1)
   }
 
-  if (item.imageDataURL) {
-    drawImageOnCanvas(imageCanvasElement, item.imageDataURL)
+  const imageDataURL = await doDatabaseCall(() => db.getImageDataURLById(item._id))
+
+  if (imageDataURL) {
+    drawImageOnCanvas(imageCanvasElement, imageDataURL)
   } else {
     drawImageOnCanvas(imageCanvasElement, PLACEHOLDER_URL_2)
   }

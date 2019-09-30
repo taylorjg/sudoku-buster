@@ -37,7 +37,8 @@ export const startWebcam = async videoElement => {
   }
   videoElement.width = width
   videoElement.height = height
-  webcam = await tf.data.webcam(videoElement, webcamConfig) //eslint-disable-line
+  // eslint-disable-next-line require-atomic-updates
+  webcam = await tf.data.webcam(videoElement, webcamConfig)
 }
 
 export const stopWebcam = () => {

@@ -27,21 +27,27 @@ const configureDb = async url => {
 
   return {
 
-    writeScanMetrics: scanMetrics => {
-      scanMetricsCollection.insertOne(scanMetrics)
+    writeScanMetrics: scanMetrics =>
+      scanMetricsCollection.insertOne(scanMetrics),
+
+    getScanMetrics: () =>
+      scanMetricsCollection
+        .find()
+        .project({ imageDataURL: false })
+        .sort('timestamp', -1)
+        .toArray(),
+
+    getScanMetricsById: id =>
+      scanMetricsCollection.findOne({ _id: ObjectId(id) }),
+
+    getImageDataURLById: async id => {
+      const record = await scanMetricsCollection.findOne({ _id: ObjectId(id) })
+      if (record) return { imageDataURL: record.imageDataURL }
+      return undefined
     },
 
-    getScanMetrics: () => {
-      return scanMetricsCollection.find().sort('timestamp', -1).toArray()
-    },
-
-    getScanMetricsById: id => {
-      return scanMetricsCollection.findOne({ _id: ObjectId(id) })
-    },
-
-    deleteScanMetrics: () => {
-      scanMetricsCollection.deleteMany({})
-    },
+    deleteScanMetrics: () =>
+      scanMetricsCollection.deleteMany({}),
 
     deleteScanMetricsById: async id => {
       const result = await scanMetricsCollection.deleteOne({ _id: ObjectId(id) })
