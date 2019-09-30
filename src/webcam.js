@@ -1,54 +1,56 @@
-import * as tf from '@tensorflow/tfjs'
-import log from 'loglevel'
+let started = false
+let savedVideoElement = undefined
+let canvas = undefined
+let ctx = undefined
 
-let webcam = undefined
-
-export const isWebcamStarted = () => !!webcam
-
-const FACING_MODE = 'environment'
-
-// This bit of error handling seems to throw an error itself:
-//   https://github.com/tensorflow/tfjs/blob/master/tfjs-data/src/iterators/webcam_iterator.ts#L118-L119
-// The error thrown is:
-//   Cannot assign to read only property 'message' of object ''
-// Therefore, I am making my own initial call to try to access the webcam
-// so that I can directly handle any permission/access error myself and
-// present a sensible error message to the user.
-const testWebcamAccessWorkaround = async () => {
-  const constraints = {
-    video: {
-      facingMode: FACING_MODE
-    }
-  }
-  await navigator.mediaDevices.getUserMedia(constraints)
-}
+export const isWebcamStarted = () => started
 
 export const startWebcam = async videoElement => {
-  await testWebcamAccessWorkaround()
+
   const videoRect = videoElement.getBoundingClientRect()
   log.info(`[startWebcam] videoRect: ${JSON.stringify(videoRect)}`)
-  const width = Math.round(videoRect.width)
-  const height = Math.round(videoRect.height)
-  log.info(`[startWebcam] width: ${width}; height: ${height}`)
-  const webcamConfig = {
-    facingMode: FACING_MODE,
-    resizeWidth: width,
-    resizeHeight: height
+
+  const constraints = {
+    video: {
+      facingMode: 'environment',
+      width: videoRect.width,
+      height: videoRect.height
+    }
   }
-  videoElement.width = width
-  videoElement.height = height
-  // eslint-disable-next-line require-atomic-updates
-  webcam = await tf.data.webcam(videoElement, webcamConfig)
+
+  const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
+
+  if (mediaStream) {
+    canvas = document.createElement('canvas')
+    canvas.width = videoRect.width
+    canvas.height = videoRect.height
+    ctx = canvas.getContext('2d')
+    savedVideoElement = videoElement
+    savedVideoElement.srcObject = mediaStream
+    savedVideoElement.play()
+    started = true
+  }
 }
 
 export const stopWebcam = () => {
-  if (webcam) {
-    webcam.stop()
-    webcam = undefined
+  if (started) {
+    const mediaStream = savedVideoElement.srcObject
+    mediaStream.getVideoTracks().forEach(videoTrack => videoTrack.stop())
+    savedVideoElement.srcObject = null
+    savedVideoElement = undefined
+    ctx = undefined
+    canvas = undefined
+    started = false
   } else {
     throw new Error('Webcam not started!')
   }
 }
 
-export const captureWebcam = () =>
-  webcam ? webcam.capture() : undefined
+export const captureWebcam = async () => {
+  if (started) {
+    ctx.drawImage(savedVideoElement, 0, 0)
+    return ctx.getImageData(0, 0, canvas.width, canvas.height)
+  } else {
+    return undefined
+  }
+}

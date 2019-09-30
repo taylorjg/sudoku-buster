@@ -4,7 +4,7 @@ import Stats from 'stats.js'
 import queryString from 'query-string'
 import axios from 'axios'
 import * as UI from './ui'
-import { imageTensorToDataURL } from './image'
+import { imageDataToDataURL } from './image'
 import { loadModels, getCellsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
 import { scanPuzzle } from './scan'
@@ -89,9 +89,9 @@ const logPerformanceMetrics = async () => {
   markss.push(marks)
 }
 
-const processImage = async (imageTensor, svgElement) => {
+const processImage = async (imageData, svgElement) => {
   try {
-    const digitPredictions = await scanPuzzle(getCellsModel(), imageTensor, svgElement, scanPuzzleOptions)
+    const digitPredictions = await scanPuzzle(getCellsModel(), imageData, svgElement, scanPuzzleOptions)
     performance.mark('scanPuzzle')
     // https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Ordinary_Sudoku
     if (digitPredictions.length < 17) return
@@ -106,7 +106,7 @@ const processImage = async (imageTensor, svgElement) => {
     UI.setDisplayMode(UI.DISPLAY_MODE_SOLUTION)
     UI.drawPuzzle(initialValues, solution)
     performance.mark('drawPuzzle')
-    const imageDataURL = await imageTensorToDataURL(imageTensor)
+    const imageDataURL = imageDataToDataURL(imageData)
     return {
       imageDataURL,
       solution
@@ -147,12 +147,14 @@ const onVideoClick = async elements => {
     try {
       stats && stats.begin()
       performance.clearMarks()
-      const gridImageTensor = await captureWebcam()
+      const imageData = await captureWebcam()
       performance.mark('captureWebcam')
-      if (!gridImageTensor) break
-      disposables.push(gridImageTensor)
-      result = await processImage(gridImageTensor, elements.videoOverlayGuidesElement)
+      if (!imageData) break
+      result = await processImage(imageData, elements.videoOverlayGuidesElement)
       if (result) break
+    } catch(error) {
+      log.error(`[onVideoClick] ${error.message}`)
+      showErrorPanel(error)
     } finally {
       disposables.forEach(disposable => disposable.dispose())
       logPerformanceMetrics()

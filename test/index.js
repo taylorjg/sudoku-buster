@@ -18,26 +18,30 @@ mocha
 
 describe('sudoku-buster tests', () => {
 
-  let imageTensorGood = undefined
-  let imageTensorWarped = undefined
+  let imageDataGood = undefined
+  let imageDataWarped = undefined
   let cellsModel = undefined
 
   before(async () => {
-    imageTensorGood = await I.loadImage('/rawImages/good.png')
-    imageTensorWarped = await I.loadImage('/rawImages/warped.png')
+
+    const imageTensorGood = await I.loadImage('/rawImages/good.png')
+    imageDataGood = await I.imageTensorToImageData(imageTensorGood)
+    imageTensorGood.dispose()
+
+    const imageTensorWarped = await I.loadImage('/rawImages/warped.png')
+    imageDataWarped = await I.imageTensorToImageData(imageTensorWarped)
+    imageTensorWarped.dispose()
+
     cellsModel = await tf.loadLayersModel(`${location.origin}/models/cells/model.json`)
   })
 
   after(() => {
-    imageTensorGood.dispose()
-    imageTensorWarped.dispose()
     cellsModel.dispose()
   })
 
   describe('findBoundingBox', () => {
     it('should find the correct bounding box', async () => {
-      const imageData = await I.imageTensorToImageData(imageTensorGood)
-      const { boundingBox } = await findBoundingBox(imageData)
+      const { boundingBox } = await findBoundingBox(imageDataGood)
       const [x, y, w, h] = boundingBox
       const TOLERANCE = 3
       expect(x).to.be.almost(21, TOLERANCE)
@@ -65,7 +69,7 @@ describe('sudoku-buster tests', () => {
     }
 
     it('should predict the correct initial values (good image)', async () => {
-      const digitPredictions = await scanPuzzle(cellsModel, imageTensorGood)
+      const digitPredictions = await scanPuzzle(cellsModel, imageDataGood)
       const actual = digitPredictionsToPuzzle(digitPredictions)
       const expected = [
         "28  3  45",
@@ -82,7 +86,7 @@ describe('sudoku-buster tests', () => {
     })
 
     it('should predict the correct initial values (warped image)', async () => {
-      const digitPredictions = await scanPuzzle(cellsModel, imageTensorWarped)
+      const digitPredictions = await scanPuzzle(cellsModel, imageDataWarped)
       const actual = digitPredictionsToPuzzle(digitPredictions)
       const expected = [
         " 59      ",
@@ -100,7 +104,7 @@ describe('sudoku-buster tests', () => {
 
     it('should not leak any tensors', async () => {
       const numTensorsBefore = tf.memory().numTensors
-      await scanPuzzle(cellsModel, imageTensorGood)
+      await scanPuzzle(cellsModel, imageDataGood)
       const numTensorsAfter = tf.memory().numTensors
       expect(numTensorsAfter).to.equal(numTensorsBefore)
     })
@@ -113,7 +117,7 @@ describe('sudoku-buster tests', () => {
     })
 
     it('should succeed given the result of a successful scan', async () => {
-      const digitPredictions = await scanPuzzle(cellsModel, imageTensorGood)
+      const digitPredictions = await scanPuzzle(cellsModel, imageDataGood)
       expect(satisfiesAllConstraints(digitPredictions)).to.be.true
     })
 

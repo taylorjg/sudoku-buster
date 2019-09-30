@@ -61,11 +61,9 @@ const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingB
   return indexedDigitPredictions
 }
 
-export const scanPuzzle = async (cellsModel, imageTensor, svgElement, drawingOptions = {}) => {
+export const scanPuzzle = async (cellsModel, imageData, svgElement, drawingOptions = {}) => {
   const disposables = []
   try {
-    const imageData = await I.imageTensorToImageData(imageTensor)
-    performance.mark('imageTensorToImageData')
     const boundingBoxInfo = await findAndCheckBoundingBox(imageData, svgElement)
     performance.mark('findAndCheckBoundingBox')
     handleDrawingOptions(boundingBoxInfo, svgElement, drawingOptions)

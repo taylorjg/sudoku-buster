@@ -26,6 +26,13 @@ export const imageTensorToDataURL = async imageTensor => {
   return canvas.toDataURL('image/png')
 }
 
+export const imageDataToDataURL = imageData => {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  ctx.putImageData(imageData, 0, 0)
+  return canvas.toDataURL('image/png')
+}
+
 export const imageTensorToImageData = async imageTensor => {
   const canvas = document.createElement('canvas')
   await tf.browser.toPixels(imageTensor, canvas)
