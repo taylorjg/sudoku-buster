@@ -190,10 +190,6 @@ body {
   margin-left: .5rem;
 }
 
-.analytics-table .column-header .placeholder {
-  visibility: hidden;
-}
-
 .analytics-inner-table {
   margin-left: 5rem;
 }
