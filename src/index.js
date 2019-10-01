@@ -92,7 +92,6 @@ const logPerformanceMetrics = async () => {
 const processImage = async (imageData, svgElement) => {
   try {
     const digitPredictions = await scanPuzzle(getCellsModel(), imageData, svgElement, scanPuzzleOptions)
-    performance.mark('scanPuzzle')
     // https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Ordinary_Sudoku
     if (digitPredictions.length < 17) return
     if (!satisfiesAllConstraints(digitPredictions)) return
