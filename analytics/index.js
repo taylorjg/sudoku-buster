@@ -324,7 +324,7 @@ let currentSortDirections = new Map([
 ])
 let currentSortFilter = SORT_FILTER_ALL
 
-const sort = data => {
+const filterAndSort = data => {
   const columnFn = SORT_COLUMN_FN_MAP.get(currentSortColumn)
   const currentSortDirection = currentSortDirections.get(currentSortColumn)
   const directionFn = SORT_DIRECTION_FN_MAP.get(currentSortDirection)
@@ -351,15 +351,45 @@ const onColumnClick = column => () => {
   } else {
     currentSortColumn = column
   }
-  data = sort(data)
+  repopulateTable()
+}
+
+const onFilterChange = e => {
+  switch (e.target.value) {
+    case '':
+      currentSortFilter = SORT_FILTER_ALL
+      break
+    case 'completed':
+      currentSortFilter = SORT_FILTER_COMPLETED
+      break
+    case 'cancelled':
+      currentSortFilter = SORT_FILTER_CANCELLED
+      break
+  }
+  repopulateTable()
+}
+
+const updateRecordCounts = (data, filtereredSortedData) => {
+  if (data.length === 0) {
+    recordCountsElement.style.display = 'none'
+  } else {
+    recordCountsElement.style.display = 'block'
+    recordCountsElement.querySelector('#total-record-count').innerText = data.length
+    recordCountsElement.querySelector('#filtered-record-count').innerText = filtereredSortedData.length
+  }
+}
+
+const repopulateTable = () => {
+  const filtereredSortedData = filterAndSort(data)
   clearTable()
-  data.forEach(item => {
+  filtereredSortedData.forEach(item => {
     tbodyElement.appendChild(item.summaryRow)
     if (item.summaryRow.detailsRow) {
       tbodyElement.appendChild(item.summaryRow.detailsRow)
     }
   })
   updateColumnHeaderArrows()
+  updateRecordCounts(data, filtereredSortedData)
 }
 
 const populateTable = data => {
@@ -371,16 +401,21 @@ const populateTable = data => {
 const refreshTable = () =>
   doDatabaseCall(async () => {
     clearTable()
+    updateRecordCounts([], [])
     data = []
-    data = sort(await db.getAll())
-    populateTable(data)
+    data = await db.getAll()
     populateLegend(data)
+    const filtereredSortedData = filterAndSort(data)
+    populateTable(filtereredSortedData)
+    updateRecordCounts(data, filtereredSortedData)
   })
 
 const onRefresh = () => refreshTable()
 
 const loadingSpinnerElement = document.getElementById('loading-spinner')
 const legendContainerElement = document.getElementById('legend-container')
+const filterElement = document.getElementById('filter')
+const recordCountsElement = document.getElementById('record-counts')
 const refreshButton = document.getElementById('refresh-btn')
 const deleteAllButton = document.getElementById('delete-all-btn')
 const tbodyElement = document.querySelector('table tbody')
@@ -392,6 +427,8 @@ const initColumns = () => {
     columnElement.downArrow = columnElement.querySelector('.down-arrow')
   }
 }
+
+filterElement.addEventListener('change', onFilterChange)
 
 initColumns()
 updateColumnHeaderArrows()

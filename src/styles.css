@@ -197,7 +197,7 @@ body {
 .legend-container {
   display: flex;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 .legend-item {
