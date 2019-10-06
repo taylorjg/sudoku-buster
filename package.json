@@ -1,6 +1,6 @@
 {
   "name": "sudoku-buster",
-  "version": "0.0.85",
+  "version": "0.0.86",
   "description": "Web app to scan and solve a Sudoku puzzle",
   "scripts": {
     "eslint": "eslint .",
@@ -12,7 +12,7 @@
   "author": "Jonathan Taylor",
   "license": "MIT",
   "dependencies": {
-    "@tensorflow/tfjs": "^1.2.9",
+    "@tensorflow/tfjs": "^1.2.10",
     "axios": "^0.19.0",
     "body-parser": "^1.19.0",
     "chart.js": "^2.8.0",
@@ -36,6 +36,6 @@
     "mocha": "^6.2.1",
     "webpack": "^4.41.0",
     "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.1"
+    "webpack-dev-server": "^3.8.2"
   }
 }

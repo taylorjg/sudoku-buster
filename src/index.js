@@ -58,12 +58,14 @@ const saveScanMetrics = async (outcome, imageDataURL, solution) => {
     }
     const duration = performance.now() - startTime
     const timestamp = new Date().getTime()
+    const fps = frameCount / (duration / 1000)
     const data = {
       version,
       timestamp,
       outcome,
       duration,
       frameCount,
+      fps,
       markss: markss.slice(-100),
       imageDataURL,
       solution
@@ -151,7 +153,7 @@ const onVideoClick = async elements => {
       if (!imageData) break
       result = await processImage(imageData, elements.videoOverlayGuidesElement)
       if (result) break
-    } catch(error) {
+    } catch (error) {
       log.error(`[onVideoClick] ${error.message}`)
       showErrorPanel(error)
     } finally {

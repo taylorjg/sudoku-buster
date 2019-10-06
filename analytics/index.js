@@ -94,8 +94,6 @@ const createSummaryRow = item => {
 
   const duration = (item.duration / 1000).toFixed(2)
 
-  const fps = item.frameCount / (item.duration / 1000)
-
   tdActionElement.querySelector('button')
     .addEventListener('click', e => {
       e.stopPropagation()
@@ -109,7 +107,7 @@ const createSummaryRow = item => {
   outcomeCancelledElement.style.display = completed ? 'none' : 'inline'
   tdDurationElement.innerText = duration
   tdFrameCountElement.innerText = item.frameCount
-  tdFPSElement.innerText = fps.toFixed(2)
+  tdFPSElement.innerText = item.fps.toFixed(2)
 
   summaryRow.addEventListener('click', () => onRowClick(item, summaryRow))
 
@@ -184,7 +182,7 @@ const drawPerformanceData = (canvasElement, markss) => {
       scales: {
         xAxes: [{
           stacked: true,
-          categoryPercentage: 1.0,
+          categoryPercentage: 0.9,
           barPercentage: 1.0,
           gridLines: {
             display: false,
@@ -293,7 +291,7 @@ const SORT_COLUMN_FN_MAP = new Map([
   [SORT_COLUMN_OUTCOME, item => item.outcome],
   [SORT_COLUMN_DURATION, item => item.duration],
   [SORT_COLUMN_FRAME_COUNT, item => item.frameCount],
-  [SORT_COLUMN_FPS, item => item.frameCount / item.duration]
+  [SORT_COLUMN_FPS, item => item.fps]
 ])
 
 const SORT_DIRECTION_FN_MAP = new Map([
