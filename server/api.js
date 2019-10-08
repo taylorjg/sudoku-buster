@@ -12,9 +12,9 @@ const configureApi = db => {
     }
   }
 
-  const getScanMetrics = async (_, res, next) => {
+  const getScanMetrics = async (req, res, next) => {
     try {
-      const documents = await db.getScanMetrics()
+      const documents = await db.getScanMetrics(req.query)
       res.json(documents)
     } catch (error) {
       next(error)

@@ -45,13 +45,13 @@ const populateLegend = data => {
 const onDeleteAll = () =>
   doDatabaseCall(async () => {
     await db.deleteAll()
-    await refreshTable()
+    await refreshTable(true)
   })
 
 const onDeleteById = async id =>
   doDatabaseCall(async () => {
     await db.deleteById(id)
-    await refreshTable()
+    await refreshTable(true)
   })
 
 const clearTable = () => {
@@ -262,19 +262,15 @@ const durationColumnElement = theadElement.querySelector('th:nth-child(4)')
 const frameCountColumnElement = theadElement.querySelector('th:nth-child(5)')
 const fpsColumnElement = theadElement.querySelector('th:nth-child(6)')
 
-const SORT_COLUMN_VERSION = Symbol('SORT_COLUMN_VERSION')
-const SORT_COLUMN_TIMESTAMP = Symbol('SORT_COLUMN_TIMESTAMP')
-const SORT_COLUMN_OUTCOME = Symbol('SORT_COLUMN_OUTCOME')
-const SORT_COLUMN_DURATION = Symbol('SORT_COLUMN_DURATION')
-const SORT_COLUMN_FRAME_COUNT = Symbol('SORT_COLUMN_FRAME_COUNT')
-const SORT_COLUMN_FPS = Symbol('SORT_COLUMN_FPS')
+const SORT_COLUMN_VERSION = 'version'
+const SORT_COLUMN_TIMESTAMP = 'timestamp'
+const SORT_COLUMN_OUTCOME = 'outcome'
+const SORT_COLUMN_DURATION = 'duration'
+const SORT_COLUMN_FRAME_COUNT = 'frameCount'
+const SORT_COLUMN_FPS = 'fps'
 
-const SORT_DIRECTION_ASCEND = Symbol('SORT_DIRECTION_ASCEND')
-const SORT_DIRECTION_DESCEND = Symbol('SORT_DIRECTION_DESCEND')
-
-const SORT_FILTER_ALL = Symbol('SORT_FILTER_ALL')
-const SORT_FILTER_COMPLETED = Symbol('SORT_FILTER_COMPLETED')
-const SORT_FILTER_CANCELLED = Symbol('SORT_FILTER_CANCELLED')
+const SORT_DIRECTION_ASCEND = 'asc'
+const SORT_DIRECTION_DESCEND = 'desc'
 
 const SORT_COLUMN_ELEMENTS_MAP = new Map([
   [SORT_COLUMN_VERSION, versionColumnElement],
@@ -285,32 +281,15 @@ const SORT_COLUMN_ELEMENTS_MAP = new Map([
   [SORT_COLUMN_FPS, fpsColumnElement]
 ])
 
-const SORT_COLUMN_FN_MAP = new Map([
-  [SORT_COLUMN_VERSION, item => item.version],
-  [SORT_COLUMN_TIMESTAMP, item => item.timestamp],
-  [SORT_COLUMN_OUTCOME, item => item.outcome],
-  [SORT_COLUMN_DURATION, item => item.duration],
-  [SORT_COLUMN_FRAME_COUNT, item => item.frameCount],
-  [SORT_COLUMN_FPS, item => item.fps]
-])
-
-const SORT_DIRECTION_FN_MAP = new Map([
-  [SORT_DIRECTION_ASCEND, R.ascend],
-  [SORT_DIRECTION_DESCEND, R.descend]
-])
-
 const SORT_OPPOSITE_DIRECTION_MAP = new Map([
   [SORT_DIRECTION_ASCEND, SORT_DIRECTION_DESCEND],
   [SORT_DIRECTION_DESCEND, SORT_DIRECTION_ASCEND]
 ])
 
-const SORT_FILTER_FN_MAP = new Map([
-  [SORT_FILTER_ALL, R.identity],
-  [SORT_FILTER_COMPLETED, R.filter(item => item.outcome === 'completed')],
-  [SORT_FILTER_CANCELLED, R.filter(item => item.outcome === 'cancelled')]
-])
+const PAGE_SIZE = 10
 
-let data = []
+let currentPage = 1
+let lastPage = 1
 let currentSortColumn = SORT_COLUMN_TIMESTAMP
 let currentSortDirections = new Map([
   [SORT_COLUMN_VERSION, SORT_DIRECTION_DESCEND],
@@ -320,14 +299,11 @@ let currentSortDirections = new Map([
   [SORT_COLUMN_FRAME_COUNT, SORT_DIRECTION_ASCEND],
   [SORT_COLUMN_FPS, SORT_DIRECTION_DESCEND]
 ])
-let currentSortFilter = SORT_FILTER_ALL
+let currentFilter = ''
 
-const filterAndSort = data => {
-  const columnFn = SORT_COLUMN_FN_MAP.get(currentSortColumn)
-  const currentSortDirection = currentSortDirections.get(currentSortColumn)
-  const directionFn = SORT_DIRECTION_FN_MAP.get(currentSortDirection)
-  const filterFn = SORT_FILTER_FN_MAP.get(currentSortFilter)
-  return R.sort(directionFn(columnFn), filterFn(data))
+const updatePager = () => {
+  pagerPrevious.setAttribute('class', currentPage > 1 ? '' : 'disabled')
+  pagerNext.setAttribute('class', currentPage < lastPage ? '' : 'disabled')
 }
 
 const updateColumnHeaderArrows = () => {
@@ -349,66 +325,65 @@ const onColumnClick = column => () => {
   } else {
     currentSortColumn = column
   }
-  repopulateTable()
+  refreshTable(true)
 }
 
 const onFilterChange = e => {
-  switch (e.target.value) {
-    case '':
-      currentSortFilter = SORT_FILTER_ALL
-      break
-    case 'completed':
-      currentSortFilter = SORT_FILTER_COMPLETED
-      break
-    case 'cancelled':
-      currentSortFilter = SORT_FILTER_CANCELLED
-      break
-  }
-  repopulateTable()
+  currentFilter = e.target.value
+  refreshTable(true)
 }
 
-const updateRecordCounts = (data, filtereredSortedData) => {
-  if (data.length === 0) {
+const updateRecordCounts = (totalCount, matchingCount) => {
+  if (totalCount === 0) {
     recordCountsElement.style.display = 'none'
   } else {
     recordCountsElement.style.display = 'block'
-    recordCountsElement.querySelector('#total-record-count').innerText = data.length
-    recordCountsElement.querySelector('#filtered-record-count').innerText = filtereredSortedData.length
+    recordCountsElement.querySelector('#total-record-count').innerText = totalCount
+    recordCountsElement.querySelector('#matching-record-count').innerText = matchingCount
   }
 }
 
-const repopulateTable = () => {
-  const filtereredSortedData = filterAndSort(data)
-  clearTable()
-  filtereredSortedData.forEach(item => {
-    tbodyElement.appendChild(item.summaryRow)
-    if (item.summaryRow.detailsRow) {
-      tbodyElement.appendChild(item.summaryRow.detailsRow)
-    }
-  })
-  updateColumnHeaderArrows()
-  updateRecordCounts(data, filtereredSortedData)
-}
-
-const populateTable = data => {
-  data.forEach(item => {
+const populateTable = records => {
+  records.forEach(item => {
     item.summaryRow = createSummaryRow(item)
   })
 }
 
-const refreshTable = () =>
+const refreshTable = reset =>
   doDatabaseCall(async () => {
+    if (reset) {
+      currentPage = 1
+      lastPage = 1
+    }
     clearTable()
-    updateRecordCounts([], [])
-    data = []
-    data = await db.getAll()
-    populateLegend(data)
-    const filtereredSortedData = filterAndSort(data)
-    populateTable(filtereredSortedData)
-    updateRecordCounts(data, filtereredSortedData)
+    updateRecordCounts(0, 0)
+    updatePager()
+    const { records, totalCount, matchingCount } = await db.getAll({
+      outcome: currentFilter,
+      sortColumn: currentSortColumn,
+      sortDirection: currentSortDirections.get(currentSortColumn),
+      page: currentPage,
+      pageSize: PAGE_SIZE
+    })
+    populateLegend(records)
+    populateTable(records)
+    updateColumnHeaderArrows()
+    updateRecordCounts(totalCount, matchingCount)
+    lastPage = Math.ceil(matchingCount / PAGE_SIZE)
+    updatePager()
   })
 
-const onRefresh = () => refreshTable()
+const onRefresh = () => refreshTable(true)
+
+const onPrevious = () => {
+  currentPage--
+  refreshTable(false)
+}
+
+const onNext = () => {
+  currentPage++
+  refreshTable(false)
+}
 
 const loadingSpinnerElement = document.getElementById('loading-spinner')
 const legendContainerElement = document.getElementById('legend-container')
@@ -417,6 +392,8 @@ const recordCountsElement = document.getElementById('record-counts')
 const refreshButton = document.getElementById('refresh-btn')
 const deleteAllButton = document.getElementById('delete-all-btn')
 const tbodyElement = document.querySelector('table tbody')
+const pagerPrevious = document.getElementById('pager-previous')
+const pagerNext = document.getElementById('pager-next')
 
 const initColumns = () => {
   for (const [column, columnElement] of SORT_COLUMN_ELEMENTS_MAP.entries()) {
@@ -443,8 +420,10 @@ const onIdle = () => {
 const main = async () => {
   refreshButton.addEventListener('click', onRefresh)
   deleteAllButton.addEventListener('click', onDeleteAll)
+  pagerPrevious.addEventListener('click', onPrevious)
+  pagerNext.addEventListener('click', onNext)
   onIdle()
-  refreshTable()
+  refreshTable(true)
 }
 
 main()

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import * as R from 'ramda'
 
 const scanMetricsInstance = axios.create({
   baseURL: '/api/scanMetrics'
@@ -10,8 +11,9 @@ export const deleteAll = () =>
 export const deleteById = id =>
   scanMetricsInstance.delete(`/${id}`)
 
-export const getAll = async () => {
-  const { data } = await scanMetricsInstance.get()
+export const getAll = async params => {
+  const filteredParams = R.filter(value => value !== '', params)
+  const { data } = await scanMetricsInstance.get(undefined, { params: filteredParams })
   return data
 }
 

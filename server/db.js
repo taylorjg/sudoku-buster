@@ -30,12 +30,28 @@ const configureDb = async url => {
     writeScanMetrics: scanMetrics =>
       scanMetricsCollection.insertOne(scanMetrics),
 
-    getScanMetrics: () =>
-      scanMetricsCollection
-        .find()
-        .project({ imageDataURL: false })
-        .sort('timestamp', -1)
-        .toArray(),
+    getScanMetrics: async ({
+      outcome = '',
+      sortColumn = 'timestamp',
+      sortDirection = -1,
+      page = 1,
+      pageSize = 10 } = {}) => {
+      const query = outcome ? { outcome } : {}
+      const options = {
+        sort: { [sortColumn]: sortDirection === 'asc' ? 1 : -1 },
+        skip: (Number(page) - 1) * pageSize,
+        limit: Number(pageSize)
+      }
+      const totalCount = await scanMetricsCollection.estimatedDocumentCount()
+      const cursor = scanMetricsCollection.find(query, options)
+      const matchingCount = await cursor.count()
+      const records = await cursor.project({ imageDataURL: false }).toArray()
+      return {
+        records,
+        totalCount,
+        matchingCount
+      }
+    },
 
     getScanMetricsById: id =>
       scanMetricsCollection.findOne({ _id: ObjectId(id) }),
