@@ -58,6 +58,7 @@ const clearTable = () => {
   while (tbodyElement.firstChild) {
     tbodyElement.removeChild(tbodyElement.firstChild)
   }
+  recordCountsContainerElement.style.display = 'none'
 }
 
 const onRowClick = async (item, summaryRow) => {
@@ -289,7 +290,7 @@ const SORT_OPPOSITE_DIRECTION_MAP = new Map([
 const PAGE_SIZE = 10
 
 let currentPage = 1
-let lastPage = 1
+let lastPage = 0
 let currentSortColumn = SORT_COLUMN_TIMESTAMP
 let currentSortDirections = new Map([
   [SORT_COLUMN_VERSION, SORT_DIRECTION_DESCEND],
@@ -300,22 +301,6 @@ let currentSortDirections = new Map([
   [SORT_COLUMN_FPS, SORT_DIRECTION_DESCEND]
 ])
 let currentFilter = ''
-
-const updatePager = () => {
-  pagerPrevious.setAttribute('class', currentPage > 1 ? '' : 'disabled')
-  pagerNext.setAttribute('class', currentPage < lastPage ? '' : 'disabled')
-}
-
-const updateColumnHeaderArrows = () => {
-  for (const [column, columnElement] of SORT_COLUMN_ELEMENTS_MAP.entries()) {
-    const isCurrentSortColumn = column === currentSortColumn
-    const currentSortDirection = currentSortDirections.get(column)
-    const showUpArrow = isCurrentSortColumn && currentSortDirection === SORT_DIRECTION_ASCEND
-    const showDownArrow = isCurrentSortColumn && currentSortDirection === SORT_DIRECTION_DESCEND
-    columnElement.upArrow.style.display = showUpArrow ? 'inline-block' : 'none'
-    columnElement.downArrow.style.display = showDownArrow ? 'inline-block' : 'none'
-  }
-}
 
 const onColumnClick = column => () => {
   if (currentSortColumn === column) {
@@ -333,14 +318,43 @@ const onFilterChange = e => {
   refreshTable(true)
 }
 
-const updateRecordCounts = (totalCount, matchingCount) => {
-  if (totalCount === 0) {
-    recordCountsElement.style.display = 'none'
+const updatePager = () => {
+  if (lastPage === 0) {
+    currentPage = 1
+    pagerPrevious.setAttribute('class', 'disabled')
+    pagerNext.setAttribute('class', 'disabled')
   } else {
-    recordCountsElement.style.display = 'block'
-    recordCountsElement.querySelector('#total-record-count').innerText = totalCount
-    recordCountsElement.querySelector('#matching-record-count').innerText = matchingCount
+    currentPage = R.clamp(1, lastPage, currentPage)
+    pagerPrevious.setAttribute('class', currentPage > 1 ? '' : 'disabled')
+    pagerNext.setAttribute('class', currentPage < lastPage ? '' : 'disabled')
   }
+}
+
+const updateColumnHeaderArrows = () => {
+  for (const [column, columnElement] of SORT_COLUMN_ELEMENTS_MAP.entries()) {
+    const isCurrentSortColumn = column === currentSortColumn
+    const currentSortDirection = currentSortDirections.get(column)
+    const showUpArrow = isCurrentSortColumn && currentSortDirection === SORT_DIRECTION_ASCEND
+    const showDownArrow = isCurrentSortColumn && currentSortDirection === SORT_DIRECTION_DESCEND
+    columnElement.upArrow.style.display = showUpArrow ? 'inline-block' : 'none'
+    columnElement.downArrow.style.display = showDownArrow ? 'inline-block' : 'none'
+  }
+}
+
+const updateRecordCounts = (totalCount, matchingCount) => {
+  recordCountsContainerElement.style.display = 'block'
+  const makePagePart = () => {
+    if (matchingCount === 0) return ''
+    const from = (currentPage - 1) * PAGE_SIZE + 1
+    const to = R.clamp(1, matchingCount, currentPage * PAGE_SIZE)
+    return `Page ${currentPage} (${from}-${to})`
+  }
+  const parts = [
+    `Total: ${totalCount}`,
+    `Matching: ${matchingCount}`,
+    makePagePart()
+  ]
+  recordCountsElement.innerText = parts.filter(R.identity).join(', ')
 }
 
 const populateTable = records => {
@@ -353,10 +367,9 @@ const refreshTable = reset =>
   doDatabaseCall(async () => {
     if (reset) {
       currentPage = 1
-      lastPage = 1
+      lastPage = 0
     }
     clearTable()
-    updateRecordCounts(0, 0)
     updatePager()
     const { records, totalCount, matchingCount } = await db.getAll({
       outcome: currentFilter,
@@ -388,7 +401,8 @@ const onNext = () => {
 const loadingSpinnerElement = document.getElementById('loading-spinner')
 const legendContainerElement = document.getElementById('legend-container')
 const filterElement = document.getElementById('filter')
-const recordCountsElement = document.getElementById('record-counts')
+const recordCountsContainerElement = document.getElementById('record-counts-container')
+const recordCountsElement = recordCountsContainerElement.querySelector('.record-counts')
 const refreshButton = document.getElementById('refresh-btn')
 const deleteAllButton = document.getElementById('delete-all-btn')
 const tbodyElement = document.querySelector('table tbody')

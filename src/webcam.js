@@ -1,3 +1,5 @@
+import log from 'loglevel'
+
 let started = false
 let savedVideoElement = undefined
 let canvas = undefined

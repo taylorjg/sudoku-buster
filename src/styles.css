@@ -213,3 +213,8 @@ body {
   height: 0;
   margin-right: 1rem;
 }
+
+.record-counts {
+  display: flex;
+  justify-content: center;
+}

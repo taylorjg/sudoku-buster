@@ -89,3 +89,6 @@ A few basic in-browser tests can be found here:
 * [Knuth's Algorithm X](https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X)
 * [Dancing Links](https://en.wikipedia.org/wiki/Dancing_Links)
 * [dlxlib](https://www.npmjs.com/package/dlxlib)
+* [MongoDB Node.JS Driver](https://mongodb.github.io/node-mongodb-native/)
+  * [MongoDB Node.js Driver Documentation](https://mongodb.github.io/node-mongodb-native/3.3/)
+  * [Node.js MongoDB Driver API](https://mongodb.github.io/node-mongodb-native/3.3/api/index.html)
