@@ -62,12 +62,20 @@ const clearTable = () => {
 }
 
 const onRowClick = async (item, summaryRow) => {
+  if (summaryRow.detailsRowPending) {
+    return
+  }
   if (summaryRow.detailsRow) {
     tbodyElement.removeChild(summaryRow.detailsRow)
     delete summaryRow.detailsRow
   } else {
-    // eslint-disable-next-line require-atomic-updates
-    summaryRow.detailsRow = await createDetailsRow(item, summaryRow)
+    try {
+      summaryRow.detailsRowPending = true
+      /* eslint-disable-next-line require-atomic-updates */
+      summaryRow.detailsRow = await createDetailsRow(item, summaryRow)
+    } finally {
+      delete summaryRow.detailsRowPending
+    }
   }
 }
 
