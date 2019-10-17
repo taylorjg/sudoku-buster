@@ -243,14 +243,6 @@ const createDetailsRow = async (item, summaryRow) => {
     drawImageOnCanvas(chartCanvasElement, PLACEHOLDER_URL_1)
   }
 
-  const imageDataURL = await doDatabaseCall(() => db.getImageDataURLById(item._id))
-
-  if (imageDataURL) {
-    drawImageOnCanvas(imageCanvasElement, imageDataURL)
-  } else {
-    drawImageOnCanvas(imageCanvasElement, PLACEHOLDER_URL_2)
-  }
-
   if (item.solution) {
     drawInitialValues(initialValuesSvgElement, item.solution)
     drawInitialValues(solutionSvgElement, item.solution)
@@ -258,6 +250,14 @@ const createDetailsRow = async (item, summaryRow) => {
   } else {
     drawImageOnSvg(initialValuesSvgElement, PLACEHOLDER_URL_3)
     drawImageOnSvg(solutionSvgElement, PLACEHOLDER_URL_4)
+  }
+
+  const imageDataURL = await doDatabaseCall(() => db.getImageDataURLById(item._id))
+
+  if (imageDataURL) {
+    drawImageOnCanvas(imageCanvasElement, imageDataURL)
+  } else {
+    drawImageOnCanvas(imageCanvasElement, PLACEHOLDER_URL_2)
   }
 
   return detailsRow
