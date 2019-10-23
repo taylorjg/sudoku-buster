@@ -1,9 +1,13 @@
 import * as R from 'ramda'
 import moment from 'moment'
 import Chart from 'chart.js'
+import queryString from 'query-string'
 import { createSvgElement, drawInitialValues, drawSolution } from '../src/drawSvg'
 import { showErrorPanel, hideErrorPanel } from '../src/errorPanel'
 import * as db from './db'
+
+const queryParams = queryString.parse(location.search)
+const admin = queryParams['admin'] !== undefined
 
 const PLACEHOLDER_URL_1 = 'https://via.placeholder.com/400x200.png?text=Performance+Marks'
 const PLACEHOLDER_URL_2 = 'https://via.placeholder.com/200x200.png?text=Webcam+Image'
@@ -85,8 +89,6 @@ const createSummaryRow = item => {
   const documentFragment = document.importNode(template.content, true)
   const summaryRow = documentFragment.firstElementChild
 
-  tbodyElement.appendChild(documentFragment)
-
   const tdVersionElement = summaryRow.querySelector('td:nth-child(1)')
   const tdTimestampElement = summaryRow.querySelector('td:nth-child(2)')
   const outcomeCompletedElement = summaryRow.querySelector('.outcome-completed')
@@ -103,12 +105,6 @@ const createSummaryRow = item => {
 
   const duration = (item.duration / 1000).toFixed(2)
 
-  tdActionElement.querySelector('button')
-    .addEventListener('click', e => {
-      e.stopPropagation()
-      onDeleteById(item._id)
-    })
-
   tdVersionElement.innerText = item.version
   tdTimestampElement.innerText = timestamp
   const completed = item.outcome === 'completed'
@@ -118,7 +114,19 @@ const createSummaryRow = item => {
   tdFrameCountElement.innerText = item.frameCount
   tdFPSElement.innerText = item.fps.toFixed(2)
 
+  const deleteButton = tdActionElement.querySelector('button')
+  if (admin) {
+    deleteButton.addEventListener('click', e => {
+      e.stopPropagation()
+      onDeleteById(item._id)
+    })
+  } else {
+    deleteButton.style.display = 'none'
+  }
+
   summaryRow.addEventListener('click', () => onRowClick(item, summaryRow))
+
+  tbodyElement.appendChild(documentFragment)
 
   return summaryRow
 }
@@ -425,8 +433,6 @@ const initColumns = () => {
   }
 }
 
-filterElement.addEventListener('change', onFilterChange)
-
 initColumns()
 updateColumnHeaderArrows()
 
@@ -440,8 +446,12 @@ const onIdle = () => {
 }
 
 const main = async () => {
+  filterElement.addEventListener('change', onFilterChange)
   refreshButton.addEventListener('click', onRefresh)
-  deleteAllButton.addEventListener('click', onDeleteAll)
+  if (admin) {
+    deleteAllButton.style.display = 'inline-block'
+    deleteAllButton.addEventListener('click', onDeleteAll)
+  }
   pagerPrevious.addEventListener('click', onPrevious)
   pagerNext.addEventListener('click', onNext)
   onIdle()
