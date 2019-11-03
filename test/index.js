@@ -16,6 +16,10 @@ mocha
   .checkLeaks()
   .globals(['__VUE_DEVTOOLS_TOAST__'])
 
+cv['onRuntimeInitialized'] = () => {
+  mocha.run()
+}
+
 describe('sudoku-buster tests', () => {
 
   let imageDataGood = undefined
@@ -148,5 +152,3 @@ describe('sudoku-buster tests', () => {
     })
   })
 })
-
-setTimeout(mocha.run, 0)

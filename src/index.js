@@ -51,11 +51,6 @@ const resetScanMetrics = () => {
 
 const saveScanMetrics = async (outcome, imageDataURL, solution) => {
   try {
-    const config = {
-      headers: {
-        'content-type': 'application/json'
-      }
-    }
     const duration = performance.now() - startTime
     const timestamp = new Date().getTime()
     const fps = frameCount / (duration / 1000)
@@ -70,7 +65,7 @@ const saveScanMetrics = async (outcome, imageDataURL, solution) => {
       imageDataURL,
       solution
     }
-    await axios.post('/api/scanMetrics', JSON.stringify(data), config)
+    await axios.post('/api/scanMetrics', data)
   } catch (error) {
     log.error(`[saveScanMetrics] ${error.message}`)
   }
@@ -199,37 +194,12 @@ const onSudokuClick = () =>
 UI.setVideoClickHandler(onVideoClick)
 UI.setSudokuClickHandler(onSudokuClick)
 
-const waitForOpenCVToFinishRunning = async () => {
-  for (; ;) {
-    if (cv && cv.Mat) {
-      log.info('[waitForOpenCVToFinishRunning] done')
-      return
-    }
-    log.info('[waitForOpenCVToFinishRunning] waiting...')
-    await new Promise(resolve => setTimeout(resolve, 2))
-  }
-}
-
-const onOpenCVLoaded = async () => {
+cv['onRuntimeInitialized'] = async () => {
   await loadModels()
-  log.info(`[onOpenCVLoaded] tf memory: ${JSON.stringify(tf.memory())}`)
-  await waitForOpenCVToFinishRunning()
   UI.hideSplashContent()
   UI.showMainContent()
   UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+  log.info(`[onRuntimeInitialized] tf memory: ${JSON.stringify(tf.memory())}`)
 }
 
-const loadOpenCV = () => {
-  const headElement = document.querySelector('head')
-  const scriptElement = document.createElement('script')
-  scriptElement.setAttribute('src', '/opencv.js')
-  scriptElement.onload = onOpenCVLoaded
-  headElement.appendChild(scriptElement)
-}
-
-const main = () => {
-  window.log = log
-  loadOpenCV()
-}
-
-main()
+window.log = log
