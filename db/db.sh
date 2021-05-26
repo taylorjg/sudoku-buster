@@ -38,9 +38,7 @@ local_run_sql_script()
     --interactive \
     --tty \
     mongo-sudoku-buster \
-    mongo \
-      --quiet \
-      "/db_scripts/$1"
+    mongo --quiet "/db_scripts/$1"
 }
 
 local_start()
@@ -64,12 +62,7 @@ heroku_shell()
     --interactive \
     --tty \
     mongo-sudoku-buster \
-    mongo \
-      --username "$HEROKU_DB_USERNAME" \
-      --password "$HEROKU_DB_PASSWORD" \
-      --host "$HEROKU_DB_HOST" \
-      --port "$HEROKU_DB_PORT" \
-      "$HEROKU_DB_DATABASE"
+    mongo "$MONGODB_URI"
 }
 
 heroku_run_sql_script()
@@ -78,14 +71,7 @@ heroku_run_sql_script()
     --interactive \
     --tty \
     mongo-sudoku-buster \
-    mongo \
-      --username "$HEROKU_DB_USERNAME" \
-      --password "$HEROKU_DB_PASSWORD" \
-      --host "$HEROKU_DB_HOST" \
-      --port "$HEROKU_DB_PORT" \
-      --quiet \
-      "$HEROKU_DB_DATABASE" \
-      "/db_scripts/$1"
+    mongo --quiet "$MONGODB_URI" "/db_scripts/$1"
 }
 
 case "${1:-}" in
