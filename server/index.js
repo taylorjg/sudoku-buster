@@ -1,7 +1,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
-const sslRedirect = require('heroku-ssl-redirect')
+const { default: sslRedirect } = require('heroku-ssl-redirect')
 const path = require('path')
 
 const { configureDb } = require('./db')
