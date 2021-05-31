@@ -1,6 +1,6 @@
 {
   "name": "sudoku-buster",
-  "version": "0.0.94",
+  "version": "0.0.95",
   "description": "Web app to scan and solve a Sudoku puzzle",
   "scripts": {
     "eslint": "eslint .",
@@ -18,7 +18,7 @@
     "chart.js": "^2.9.4",
     "dlxlib": "^2.0.0-alpha.2",
     "express": "^4.17.1",
-    "heroku-ssl-redirect": "0.0.4",
+    "heroku-ssl-redirect": "^0.1.1",
     "loglevel": "^1.7.1",
     "moment": "^2.29.1",
     "mongodb": "^3.6.9",
@@ -29,12 +29,12 @@
   "devDependencies": {
     "chai": "^4.3.4",
     "chai-almost": "^1.0.1",
-    "copy-webpack-plugin": "^5.1.2",
+    "copy-webpack-plugin": "^9.0.0",
     "eslint": "^7.27.0",
-    "html-webpack-plugin": "^3.2.0",
-    "mocha": "^6.2.3",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12",
+    "html-webpack-plugin": "^5.3.1",
+    "mocha": "^8.4.0",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.0",
     "webpack-dev-server": "^3.11.2"
   }
 }

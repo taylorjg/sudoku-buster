@@ -10,7 +10,7 @@ import { scanPuzzle } from './scan'
 import { satisfiesAllConstraints, digitPredictionsToPuzzle } from './puzzle'
 import { getInitialValues, solve } from './solve'
 import { showErrorPanel, hideErrorPanel } from './errorPanel'
-import { version } from '../package.json'
+import packagejson from '../package.json'
 
 const searchParams = new URLSearchParams(location.search)
 
@@ -53,6 +53,7 @@ const saveScanMetrics = async (outcome, imageDataURL, solution) => {
     const duration = performance.now() - startTime
     const timestamp = new Date().getTime()
     const fps = frameCount / (duration / 1000)
+    const version = packagejson.version
     const data = {
       version,
       timestamp,

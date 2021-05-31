@@ -19,13 +19,15 @@ module.exports = {
     filename: '[name].bundle.js'
   },
   plugins: [
-    new CopyWebpackPlugin([
-      { context: './src', from: '*.css' },
-      { context: './src', from: '*.gif' },
-      { context: './src', from: 'opencv.js' },
-      { from: './models', to: 'models/' },
-      { from: './rawImages', to: 'rawImages/' }
-    ]),
+    new CopyWebpackPlugin({
+      patterns: [
+        { context: './src', from: '*.css' },
+        { context: './src', from: '*.gif' },
+        { context: './src', from: 'opencv.js' },
+        { from: './models', to: 'models/' },
+        { from: './rawImages', to: 'rawImages/' }
+      ]
+    }),
     new HtmlWebpackPlugin({
       template: './src/index.html',
       filename: path.resolve(distFolder, 'index.html'),
