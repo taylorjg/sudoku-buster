@@ -1,7 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
 import Stats from 'stats.js'
-import queryString from 'query-string'
 import axios from 'axios'
 import * as UI from './ui'
 import { imageDataToDataURL } from './image'
@@ -13,16 +12,16 @@ import { getInitialValues, solve } from './solve'
 import { showErrorPanel, hideErrorPanel } from './errorPanel'
 import { version } from '../package.json'
 
-const queryParams = queryString.parse(location.search)
+const searchParams = new URLSearchParams(location.search)
 
 const scanPuzzleOptions = {
-  drawContour: queryParams['c'] !== undefined,
-  drawCorners: queryParams['cs'] !== undefined,
-  drawBoundingBox: queryParams['bb'] !== undefined,
-  drawGridSquares: queryParams['gs'] !== undefined
+  drawContour: searchParams.has('c'),
+  drawCorners: searchParams.has('cs'),
+  drawBoundingBox: searchParams.has('bb'),
+  drawGridSquares: searchParams.has('gs')
 }
 
-const fpsOn = queryParams['fps'] !== undefined
+const fpsOn = searchParams.has('fps')
 let stats = undefined
 
 const showStats = () => {

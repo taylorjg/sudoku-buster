@@ -1,13 +1,12 @@
 import * as R from 'ramda'
 import moment from 'moment'
 import Chart from 'chart.js'
-import queryString from 'query-string'
 import { createSvgElement, drawInitialValues, drawSolution } from '../src/drawSvg'
 import { showErrorPanel, hideErrorPanel } from '../src/errorPanel'
 import * as db from './db'
 
-const queryParams = queryString.parse(location.search)
-const admin = queryParams['admin'] !== undefined
+const searchParams = new URLSearchParams(location.search)
+const admin = searchParams.has('admin')
 
 const PLACEHOLDER_URL_1 = 'https://via.placeholder.com/400x200.png?text=Performance+Marks'
 const PLACEHOLDER_URL_2 = 'https://via.placeholder.com/200x200.png?text=Webcam+Image'

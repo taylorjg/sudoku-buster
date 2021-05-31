@@ -22,7 +22,7 @@ const main = async () => {
   app.use(bodyParser.json({ limit: '1mb' }))
   app.use('/api', apiRouter)
   app.use(express.static(DIST_FOLDER))
-  app.listen(PORT, () => console.log(`Listening on ${PORT}`))
+  app.listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`))
 }
 
 main()
