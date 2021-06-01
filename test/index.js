@@ -16,8 +16,14 @@ mocha
   .checkLeaks()
   .globals(['__VUE_DEVTOOLS_TOAST__'])
 
-cv['onRuntimeInitialized'] = () => {
-  mocha.run()
+cv['onRuntimeInitialized'] = async () => {
+  // https://www.tensorflow.org/js/tutorials/deployment/size_optimized_bundles
+  const profileInfo = await tf.profile(() =>
+    // https://mochajs.org/api/mocha#run
+    new Promise(resolve => mocha.run(failures => resolve(failures)))
+  )
+  console.log('profileInfo:', profileInfo)
+  console.log('kernelNames:', profileInfo.kernelNames)
 }
 
 describe('sudoku-buster tests', () => {
@@ -27,7 +33,6 @@ describe('sudoku-buster tests', () => {
   let cellsModel = undefined
 
   before(async () => {
-
     const imageTensorGood = await I.loadImage('/rawImages/good.png')
     imageDataGood = await I.imageTensorToImageData(imageTensorGood)
     imageTensorGood.dispose()
