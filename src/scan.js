@@ -5,11 +5,11 @@ import * as D from './data'
 import * as I from './image'
 import * as CALC from './calculations'
 import * as SVG from './drawSvg'
-import { findBoundingBox } from './findBoundingBox'
+import { findBoundingBox2 } from './findBoundingBox2'
 
 const findAndCheckBoundingBox = async (imageData, svgElement) => {
   try {
-    const result = await findBoundingBox(imageData)
+    const result = await findBoundingBox2(imageData)
     svgElement && SVG.clearDiagnostics(svgElement)
     if (!result) {
       const error = new Error('Failed to find bounding box.')

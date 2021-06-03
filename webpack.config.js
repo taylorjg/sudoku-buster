@@ -23,7 +23,8 @@ module.exports = {
       patterns: [
         { context: './src', from: '*.css' },
         { context: './src', from: '*.gif' },
-        { context: './src', from: 'opencv.js' },
+        { context: './src', from: 'hello.js' },
+        { context: './src', from: 'hello.wasm' },
         { from: './models', to: 'models/' },
         { from: './rawImages', to: 'rawImages/' }
       ]

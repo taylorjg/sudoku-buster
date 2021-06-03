@@ -4,6 +4,7 @@ import Stats from 'stats.js'
 import axios from 'axios'
 import * as UI from './ui'
 import { imageDataToDataURL } from './image'
+import { helloModuleLoaded } from './findBoundingBox2'
 import { loadModels, getCellsModel } from './models'
 import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
 import { scanPuzzle } from './scan'
@@ -194,12 +195,17 @@ const onSudokuClick = () =>
 UI.setVideoClickHandler(onVideoClick)
 UI.setSudokuClickHandler(onSudokuClick)
 
-cv['onRuntimeInitialized'] = async () => {
+window.log = log
+
+const main = async () => {
+  log.info('[main] waiting for hello module to load')
+  await helloModuleLoaded
+  log.info('[main] hello module loaded')
   await loadModels()
   UI.hideSplashContent()
   UI.showMainContent()
   UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
-  log.info(`[onRuntimeInitialized] tf memory: ${JSON.stringify(tf.memory())}`)
+  log.info(`[main] tf memory: ${JSON.stringify(tf.memory())}`)
 }
 
-window.log = log
+main()

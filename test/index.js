@@ -2,21 +2,24 @@ import chai, { expect } from 'chai'
 import chaiAlmost from 'chai-almost'
 import * as tf from '@tensorflow/tfjs'
 import * as R from 'ramda'
-import { findBoundingBox } from '../src/findBoundingBox.js'
+import { findBoundingBox2, helloModuleLoaded } from '../src/findBoundingBox2.js'
 import { scanPuzzle } from '../src/scan'
 import { satisfiesAllConstraints, digitPredictionsToPuzzle } from '../src/puzzle'
 import * as I from '../src/image'
 
-chai.use(chaiAlmost())
+const main = async () => {
 
-mocha
-  .setup('bdd')
-  .slow(5000)
-  .timeout(5000)
-  .checkLeaks()
-  .globals(['__VUE_DEVTOOLS_TOAST__'])
+  chai.use(chaiAlmost())
 
-cv['onRuntimeInitialized'] = async () => {
+  mocha
+    .setup('bdd')
+    .slow(5000)
+    .timeout(5000)
+    .checkLeaks()
+    .globals(['__VUE_DEVTOOLS_TOAST__'])
+
+  await helloModuleLoaded
+
   // https://www.tensorflow.org/js/tutorials/deployment/size_optimized_bundles
   const profileInfo = await tf.profile(() =>
     // https://mochajs.org/api/mocha#run
@@ -25,6 +28,8 @@ cv['onRuntimeInitialized'] = async () => {
   console.log('profileInfo:', profileInfo)
   console.log('kernelNames:', profileInfo.kernelNames)
 }
+
+main()
 
 describe('sudoku-buster tests', () => {
 
@@ -50,7 +55,7 @@ describe('sudoku-buster tests', () => {
 
   describe('findBoundingBox', () => {
     it('should find the correct bounding box', async () => {
-      const { boundingBox } = await findBoundingBox(imageDataGood)
+      const { boundingBox } = await findBoundingBox2(imageDataGood)
       const [x, y, w, h] = boundingBox
       const TOLERANCE = 3
       expect(x).to.be.almost(21, TOLERANCE)
