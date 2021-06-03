@@ -1,4 +1,5 @@
 import log from 'loglevel'
+import * as R from 'ramda'
 
 let module = undefined
 let processImageWrapper = undefined
@@ -51,12 +52,18 @@ export const findBoundingBox = async imageData => {
   const addr = processImageWrapper(data, width, height)
   if (addr === 0) return undefined
   const returnDataAddr = addr / module.HEAP32.BYTES_PER_ELEMENT
-  const returnData = module.HEAP32.slice(returnDataAddr, returnDataAddr + 20)
+  const returnData = module.HEAP32.slice(returnDataAddr, returnDataAddr + 22)
   const [
     bbx, bby, bbw, bbh,
     , , , ,
     outImage2Width, outImage2Height, outImage2Channels, outImage2Addr
   ] = returnData
+
+  const numContourPoints = returnData[20]
+  const contourAddr = returnData[21]
+  const contourAddr32 = contourAddr / module.HEAP32.BYTES_PER_ELEMENT
+  const contourPointsData = module.HEAP32.slice(contourAddr32, contourAddr32 + numContourPoints)
+  const contour = R.splitEvery(2, contourPointsData).map(([x, y]) => ({ x, y }))
 
   const boundingBox = [bbx, bby, bbw, bbh]
 
@@ -74,7 +81,7 @@ export const findBoundingBox = async imageData => {
   module._free(addr)
 
   return {
-    contour: [],
+    contour,
     corners,
     boundingBox,
     imageDataCorrected

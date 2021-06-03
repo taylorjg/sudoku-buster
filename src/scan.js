@@ -34,8 +34,7 @@ const handleDrawingOptions = (boundingBoxInfo, svgElement, drawingOptions) => {
   try {
     const { contour, corners, boundingBox } = boundingBoxInfo
     if (drawingOptions.drawContour) {
-      const points = R.splitEvery(2, contour.data32S).map(([x, y]) => ({ x, y }))
-      SVG.drawContour(svgElement, points, 'red')
+      SVG.drawContour(svgElement, contour, 'red')
     }
     if (drawingOptions.drawCorners) {
       SVG.drawCorners(svgElement, corners, 'magenta')
