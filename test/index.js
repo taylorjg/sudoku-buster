@@ -2,7 +2,7 @@ import chai, { expect } from 'chai'
 import chaiAlmost from 'chai-almost'
 import * as tf from '@tensorflow/tfjs'
 import * as R from 'ramda'
-import { findBoundingBox2, helloModuleLoaded } from '../src/findBoundingBox2.js'
+import { findBoundingBox, helloModuleLoaded } from '../src/findBoundingBox.js'
 import { scanPuzzle } from '../src/scan'
 import { satisfiesAllConstraints, digitPredictionsToPuzzle } from '../src/puzzle'
 import * as I from '../src/image'
@@ -25,6 +25,7 @@ const main = async () => {
     // https://mochajs.org/api/mocha#run
     new Promise(resolve => mocha.run(failures => resolve(failures)))
   )
+
   console.log('profileInfo:', profileInfo)
   console.log('kernelNames:', profileInfo.kernelNames)
 }
@@ -55,7 +56,7 @@ describe('sudoku-buster tests', () => {
 
   describe('findBoundingBox', () => {
     it('should find the correct bounding box', async () => {
-      const { boundingBox } = await findBoundingBox2(imageDataGood)
+      const { boundingBox } = await findBoundingBox(imageDataGood)
       const [x, y, w, h] = boundingBox
       const TOLERANCE = 3
       expect(x).to.be.almost(21, TOLERANCE)

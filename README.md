@@ -28,7 +28,23 @@ some of the resources are very large:
 
 I clearly still have some work to do to reduce the size of these resources.
 
-> **UPDATE:** I have managed to halve the size of opencv.js by making my own custom build.
+## Update 1
+
+I have managed to halve the size of opencv.js by making my own custom build.
+
+## Update 2
+
+### opencv.js
+
+I have moved the `foundBoundingBox` step from JavaScript to a C++ WebAssembly
+(see [this separate repo](https://github.com/taylorjg/emscripten-opencv))
+so that I no longer need to include opencv.js. The C++ WebAssembly is about 1MB in size.
+
+### index.bundle.js
+
+I have updated `@tensorflow/tfjs` to the latest version (currently 3.6.0).
+I hope to reduce the size of the main bundle by doing some of the stuff described
+[here](https://www.tensorflow.org/js/tutorials/deployment/size_optimized_bundles).
 
 # Instructions
 
@@ -40,10 +56,9 @@ I clearly still have some work to do to reduce the size of these resources.
 * Given digits are shown in magenta and calculated digits are shown in black
 * For best results:
   * Try to position the puzzle roughly within the guides
-  * Ensure the puzzle is in focus
-  * Ensure the puzzle is straight (not wonky or warped)
+  * Try to ensure puzzle is reasonably straight (not too wonky or warped)
   * Try to avoid shadows
-* You can tap the webcam to cancel scanning and return to the start
+* Use the Cancel button to stop scanning and return to the start
 * Tap the solution to return to the start
 
 # Query Params
@@ -58,21 +73,23 @@ The following query params can be added:
 | gs          | Draw all the grid squares (green) |
 | fps         | Display the number of webcam captures being processed per second |
 
-The following link enables all options (the Everything Bagel):
+The following link enables all options (the "Everything Bagel"):
 
 * https://sudoku-buster.herokuapp.com/index.html?c&cs&bb&gs&fps
 
 # TODO
 
 * Try to further reduce the size of opencv.js
+  * UPDATE: I have now moved the `findBoundingBox` step to a C++ WebAssembly
+  to avoid having to use opencv.js
 * Use a service worker to cache large files
 * Improve scanning speed/accuracy/robustness
   * ~~Autocorrect warped images~~
   * Tune the training of the cells model
   * Re-train the cells model on binary images
     * In an attempt to better handle different lighting conditions
-* Upload performance metrics and store them in a document database
-* Add a new web page for analysis of uploaded performance metrics
+* ~~Upload performance metrics and store them in a document database~~
+* ~~Add a new web page for analysis of uploaded performance metrics~~
 
 # Tests
 
