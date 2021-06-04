@@ -55,8 +55,8 @@ describe('sudoku-buster tests', () => {
   })
 
   describe('findBoundingBox', () => {
-    it('should find the correct bounding box', async () => {
-      const { boundingBox } = await findBoundingBox(imageDataGood)
+    it('should find the correct bounding box', () => {
+      const { boundingBox } = findBoundingBox(imageDataGood)
       const [x, y, w, h] = boundingBox
       const TOLERANCE = 3
       expect(x).to.be.almost(21, TOLERANCE)

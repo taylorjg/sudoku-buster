@@ -1,4 +1,3 @@
-import * as R from 'ramda'
 import log from 'loglevel'
 import * as C from './constants'
 import * as D from './data'
@@ -7,9 +6,9 @@ import * as CALC from './calculations'
 import * as SVG from './drawSvg'
 import { findBoundingBox } from './findBoundingBox'
 
-const findAndCheckBoundingBox = async (imageData, svgElement) => {
+const findAndCheckBoundingBox = (imageData, svgElement) => {
   try {
-    const result = await findBoundingBox(imageData)
+    const result = findBoundingBox(imageData)
     svgElement && SVG.clearDiagnostics(svgElement)
     if (!result) {
       const error = new Error('Failed to find bounding box.')
@@ -17,10 +16,11 @@ const findAndCheckBoundingBox = async (imageData, svgElement) => {
       throw error
     }
     const { boundingBox } = result
-    log.info(`[findAndCheckBoundingBox] boundingBox: ${JSON.stringify(boundingBox)}`)
+    const boundingBoxString = `[${boundingBox.join(', ')}]`
+    log.info(`[findAndCheckBoundingBox] boundingBox: ${boundingBoxString}`)
     const [, , w, h] = boundingBox
     if (w < C.GRID_IMAGE_WIDTH / 2 || h < C.GRID_IMAGE_HEIGHT / 2) {
-      const error = new Error(`Bounding box is too small, ${JSON.stringify(boundingBox)}.`)
+      const error = new Error(`Bounding box is too small, ${boundingBoxString}.`)
       error.isScanException = true
       throw error
     }
@@ -75,9 +75,9 @@ const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingB
 export const scanPuzzle = async (cellsModel, imageData, svgElement, drawingOptions = {}) => {
   const disposables = []
   try {
-    const boundingBoxInfo = await findAndCheckBoundingBox(imageData, svgElement)
+    const boundingBoxInfo = findAndCheckBoundingBox(imageData, svgElement)
     handleDrawingOptions(boundingBoxInfo, svgElement, drawingOptions)
-    const { imageDataCorrected } = boundingBoxInfo
+    const { image2: imageDataCorrected } = boundingBoxInfo
     const imageTensorCorrected = I.imageDataToImageTensor(imageDataCorrected)
     disposables.push(imageTensorCorrected)
     performance.mark('imageDataToImageTensor')

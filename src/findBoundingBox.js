@@ -47,43 +47,41 @@ const imageDataFrom4Channels = (data, width, height) => {
   return imageData
 }
 
-export const findBoundingBox = async imageData => {
+const unpackImage = ([width, height, channels, addr]) => {
+  const numBytes = width * height * channels
+  const data = module.HEAPU8.slice(addr, addr + numBytes)
+  return channels === 1
+    ? imageDataFrom1Channel(data, width, height)
+    : imageDataFrom4Channels(data, width, height)
+}
+
+const unpackCorners = data32 => {
+  return R.splitEvery(2, data32).map(([x, y]) => ({ x, y }))
+}
+
+const unpackContour = ([numPoints, addr]) => {
+  const addr32 = addr / module.HEAP32.BYTES_PER_ELEMENT
+  const data32 = module.HEAP32.slice(addr32, addr32 + numPoints * 2)
+  return R.splitEvery(2, data32).map(([x, y]) => ({ x, y }))
+}
+
+const unpackProcessImageResult = addr => {
+  const NUM_INT_FIELDS = 22
+  const addr32 = addr / module.HEAP32.BYTES_PER_ELEMENT
+  const data32 = module.HEAP32.slice(addr32, addr32 + NUM_INT_FIELDS)
+  const boundingBox = data32.slice(0, 4)
+  const image1 = unpackImage(data32.slice(4, 8))
+  const image2 = unpackImage(data32.slice(8, 12))
+  const corners = unpackCorners(data32.slice(12, 20))
+  const contour = unpackContour(data32.slice(20, 22))
+  return { boundingBox, image1, image2, corners, contour }
+}
+
+export const findBoundingBox = imageData => {
   const { data, width, height } = imageData
   const addr = processImageWrapper(data, width, height)
   if (addr === 0) return undefined
-  const returnDataAddr = addr / module.HEAP32.BYTES_PER_ELEMENT
-  const returnData = module.HEAP32.slice(returnDataAddr, returnDataAddr + 22)
-  const [
-    bbx, bby, bbw, bbh,
-    , , , ,
-    outImage2Width, outImage2Height, outImage2Channels, outImage2Addr
-  ] = returnData
-
-  const numContourPoints = returnData[20]
-  const contourAddr = returnData[21]
-  const contourAddr32 = contourAddr / module.HEAP32.BYTES_PER_ELEMENT
-  const contourPointsData = module.HEAP32.slice(contourAddr32, contourAddr32 + numContourPoints)
-  const contour = R.splitEvery(2, contourPointsData).map(([x, y]) => ({ x, y }))
-
-  const boundingBox = [bbx, bby, bbw, bbh]
-
-  const corners = [0, 1, 2, 3].map(cornerIndex => ({
-    x: returnData[12 + cornerIndex * 2],
-    y: returnData[12 + cornerIndex * 2 + 1]
-  }))
-
-  const outImage2DataSize = outImage2Width * outImage2Height * outImage2Channels
-  const outImage2Data = module.HEAPU8.slice(outImage2Addr, outImage2Addr + outImage2DataSize)
-  const imageDataCorrected = outImage2Channels === 1
-    ? imageDataFrom1Channel(outImage2Data, outImage2Width, outImage2Height)
-    : imageDataFrom4Channels(outImage2Data, outImage2Width, outImage2Height)
-
+  const unpackedResult = unpackProcessImageResult(addr)
   module._free(addr)
-
-  return {
-    contour,
-    corners,
-    boundingBox,
-    imageDataCorrected
-  }
+  return unpackedResult
 }
