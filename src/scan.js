@@ -51,13 +51,12 @@ const handleDrawingOptions = (boundingBoxInfo, svgElement, drawingOptions) => {
   }
 }
 
-const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingBox) => {
+const predictDigits = async (cellsModel, gridImageTensor, boundingBox) => {
+  const disposables = []
   try {
-    const gridSquareImageTensors = D.cropGridSquares(
-      gridImageTensor,
-      boundingBox)
+    const gridSquareImageTensors = D.cropGridSquares(gridImageTensor, boundingBox)
     disposables.push(gridSquareImageTensors)
-    const batchSize = 81
+    const batchSize = gridSquareImageTensors.shape[0]
     const outputs = cellsModel.predict(gridSquareImageTensors, { batchSize })
     disposables.push(outputs)
     const outputsArgMax = outputs.argMax(1)
@@ -68,6 +67,7 @@ const predictDigits = async (disposables, cellsModel, gridImageTensor, boundingB
       .filter(({ digitPrediction }) => digitPrediction > 0)
     return indexedDigitPredictions
   } finally {
+    disposables.forEach(disposable => disposable.dispose())
     performance.mark('predictDigits')
   }
 }
@@ -82,7 +82,7 @@ export const scanPuzzle = async (cellsModel, imageData, svgElement, drawingOptio
     disposables.push(imageTensorCorrected)
     performance.mark('imageDataToImageTensor')
     const boundingBox = CALC.inset(0, 0, imageDataCorrected.width, imageDataCorrected.height, 2, 2)
-    const indexedDigitPredictions = await predictDigits(disposables, cellsModel, imageTensorCorrected, boundingBox)
+    const indexedDigitPredictions = await predictDigits(cellsModel, imageTensorCorrected, boundingBox)
     return indexedDigitPredictions
   } finally {
     disposables.forEach(disposable => disposable.dispose())
