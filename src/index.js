@@ -39,20 +39,19 @@ const hideStats = () => {
   }
 }
 
+let metricsPerFrame = []
 let startTime = 0
-let frameCount = 0
-let markss = []
 
 const resetScanMetrics = () => {
+  metricsPerFrame = []
   startTime = performance.now()
-  frameCount = 0
-  markss = []
 }
 
 const saveScanMetrics = async (outcome, imageDataURL, solution) => {
   try {
     const duration = performance.now() - startTime
     const timestamp = new Date().getTime()
+    const frameCount = metricsPerFrame.length
     const fps = frameCount / (duration / 1000)
     const version = packagejson.version
     const data = {
@@ -62,7 +61,7 @@ const saveScanMetrics = async (outcome, imageDataURL, solution) => {
       duration,
       frameCount,
       fps,
-      markss: markss.slice(-100),
+      metricsPerFrame: metricsPerFrame.slice(-100),
       imageDataURL,
       solution
     }
@@ -72,37 +71,33 @@ const saveScanMetrics = async (outcome, imageDataURL, solution) => {
   }
 }
 
-const logPerformanceMetrics = async () => {
-  const marks = performance.getEntriesByType('mark')
-  if (marks.length === 0) return
-  const firstStartTime = marks[0].startTime
-  const transformedMarks = marks
-    .map(({ name, startTime }, index) => ({
-      name,
-      sinceFirstStartTime: (startTime - firstStartTime).toFixed(2),
-      sincePreviousStartTime: (index > 0 ? startTime - marks[index - 1].startTime : 0).toFixed(2)
-    }))
-  transformedMarks.forEach(mark => log.info(JSON.stringify(mark)))
-  frameCount++
-  markss.push(marks)
+const stashFrameMetrics = async () => {
+  const frameMetrics = performance.getEntriesByType('measure')
+  metricsPerFrame.push(frameMetrics)
 }
 
 const processImage = async (imageData, svgElement) => {
   try {
     const digitPredictions = await scanPuzzle(getCellsModel(), imageData, svgElement, scanPuzzleOptions)
-    // https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Ordinary_Sudoku
-    if (digitPredictions.length < 17) return
+
     if (!satisfiesAllConstraints(digitPredictions)) return
-    performance.mark('satisfiesAllConstraints')
+
     const puzzle = digitPredictionsToPuzzle(digitPredictions)
     const initialValues = getInitialValues(puzzle)
+
+    performance.mark('solve-start')
     const solutions = solve(puzzle, { numSolutions: 1 })
-    performance.mark('solve')
+    performance.measure('solve', 'solve-start')
+
     if (solutions.length !== 1) return
+
     const solution = solutions[0]
     UI.setDisplayMode(UI.DISPLAY_MODE_SOLUTION)
+
+    performance.mark('drawPuzzle-start')
     UI.drawPuzzle(initialValues, solution)
-    performance.mark('drawPuzzle')
+    performance.measure('drawPuzzle', 'drawPuzzle-start')
+
     const imageDataURL = imageDataToDataURL(imageData)
     return {
       imageDataURL,
@@ -143,9 +138,16 @@ const onVideoClick = async elements => {
     const disposables = []
     try {
       stats && stats.begin()
+
       performance.clearMarks()
+      performance.clearMeasures()
+
+      performance.mark('overall-start')
+
+      performance.mark('captureWebcam-start')
       const imageData = await captureWebcam()
-      performance.mark('captureWebcam')
+      performance.measure('captureWebcam', 'captureWebcam-start')
+
       if (!imageData) break
       result = await processImage(imageData, elements.videoOverlayGuidesElement)
       if (result) break
@@ -154,7 +156,7 @@ const onVideoClick = async elements => {
       showErrorPanel(error)
     } finally {
       disposables.forEach(disposable => disposable.dispose())
-      logPerformanceMetrics()
+      stashFrameMetrics()
       stats && stats.end()
     }
     log.info('[onVideoClick] waiting for next frame...')

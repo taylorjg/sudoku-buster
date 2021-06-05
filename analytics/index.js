@@ -32,14 +32,14 @@ const populateLegend = data => {
   if (legendContainerElement.firstElementChild) return
   const completedItem = data.find(item => item.outcome === 'completed')
   if (completedItem) {
-    const marks = R.last(completedItem.markss)
-    marks.slice(1).forEach((mark, index) => {
+    const lastFrameMetrics = R.last(completedItem.metricsPerFrame)
+    lastFrameMetrics.forEach((metric, index) => {
       const template = document.getElementById('legend-item-template')
       const documentFragment = document.importNode(template.content, true)
       const legendColourElement = documentFragment.querySelector('.legend-item__colour')
       const legendNameElement = documentFragment.querySelector('.legend-item__name')
       legendColourElement.style.borderBottomColor = COLOURS[index]
-      legendNameElement.innerText = mark.name
+      legendNameElement.innerText = metric.name
       legendContainerElement.appendChild(documentFragment)
     })
   }
@@ -162,23 +162,21 @@ const COLOURS = [
   '#b15928'
 ]
 
-const makeDatasets = markss => {
-  const numDatasets = Math.max(...markss.map(marks => marks.length))
-  return R.range(1, numDatasets).map(datasetIndex => ({
-    backgroundColor: COLOURS[datasetIndex - 1],
-    data: markss.map(marks => {
-      if (datasetIndex >= marks.length) return 0
-      const thisStartTime = marks[datasetIndex].startTime
-      const previousStartTime = marks[datasetIndex - 1].startTime
-      const diffTime = thisStartTime - previousStartTime
-      return Number(diffTime.toFixed(2))
+const makeDatasets = metricsPerFrame => {
+  const numDatasets = Math.max(...metricsPerFrame.map(metrics => metrics.length))
+  return R.range(0, numDatasets).map(datasetIndex => ({
+    backgroundColor: COLOURS[datasetIndex],
+    data: metricsPerFrame.map(metrics => {
+      if (datasetIndex >= metrics.length) return 0
+      const duration = metrics[datasetIndex].duration
+      return Number(duration.toFixed(2))
     }),
-    label: markss.find(marks => datasetIndex < marks.length)[datasetIndex].name
+    label: metricsPerFrame.find(metrics => datasetIndex < metrics.length)[datasetIndex].name
   }))
 }
 
-const drawPerformanceData = (canvasElement, markss) => {
-  const datasets = makeDatasets(markss)
+const drawPerformanceData = (canvasElement, metricsPerFrame) => {
+  const datasets = makeDatasets(metricsPerFrame)
   const labels = R.range(0, datasets[0].data.length).map(R.inc)
   const ctx = canvasElement.getContext('2d')
   new Chart(ctx, {
@@ -244,8 +242,8 @@ const createDetailsRow = async (item, summaryRow) => {
 
   tdUserAgentElement.innerText = item.userAgent
 
-  if (item.markss.length > 0) {
-    drawPerformanceData(chartCanvasElement, item.markss)
+  if (item.metricsPerFrame.length > 0) {
+    drawPerformanceData(chartCanvasElement, item.metricsPerFrame)
   } else {
     drawImageOnCanvas(chartCanvasElement, PLACEHOLDER_URL_1)
   }

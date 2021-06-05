@@ -35,22 +35,34 @@ const setsOfBoxIndices =
       R.range(0, 3)),
     R.range(0, 3))
 
+const noDuplicates = xs =>
+  xs.length === R.uniq(xs).length
+
 const validateIndices = digitPredictions => indices => {
   const digits = digitPredictions
     .filter(({ index }) => indices.includes(index))
     .map(({ digitPrediction }) => digitPrediction)
-  return digits.length === R.uniq(digits).length
+  return noDuplicates(digits)
 }
 
 const validateSetsOfIndices = digitPredictions =>
   R.all(validateIndices(digitPredictions))
 
-export const satisfiesAllConstraints = digitPredictions =>
-  R.all(
-    validateSetsOfIndices(digitPredictions),
-    [
-      setsOfRowIndices,
-      setsOfColIndices,
-      setsOfBoxIndices
-    ]
-  )
+export const satisfiesAllConstraints = digitPredictions => {
+  performance.mark('satisfiesAllConstraints-start')
+  try {
+    // https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Ordinary_Sudoku
+    if (digitPredictions.length < 17) return
+
+    return R.all(
+      validateSetsOfIndices(digitPredictions),
+      [
+        setsOfRowIndices,
+        setsOfColIndices,
+        setsOfBoxIndices
+      ]
+    )
+  } finally {
+    performance.measure('satisfiesAllConstraints', 'satisfiesAllConstraints-start')
+  }
+}
