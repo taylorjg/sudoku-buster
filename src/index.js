@@ -112,13 +112,7 @@ const processImage = async (imageData, svgElement) => {
   }
 }
 
-const onVideoClick = async elements => {
-
-  if (isWebcamStarted()) {
-    log.info('[onVideoClick] webcam already started - bailing')
-    return
-  }
-
+const startProcessingLoop = async elements => {
   try {
     hideErrorPanel()
     resetScanMetrics()
@@ -127,26 +121,42 @@ const onVideoClick = async elements => {
     UI.showCancelButton(onCancel)
     showStats()
   } catch (error) {
-    log.error(`[onVideoClick] ${error.message}`)
+    log.error(`[startProcessingLoop] ${error.message}`)
     showErrorPanel(error)
+  }
+}
+
+const stopProcessingLoop = async result => {
+  try {
+    if (!result) {
+      UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
+    }
+    UI.hideCancelButton(onCancel)
+    stopWebcam()
+    hideStats()
+    if (result) {
+      await saveScanMetrics('completed', result.imageDataURL, result.solution)
+    } else {
+      await saveScanMetrics('cancelled')
+    }
+  } catch (error) {
+    log.error(`[stopProcessingLoop] ${error.message}`)
+    showErrorPanel(error.message)
+  }
+}
+
+const onVideoClick = async elements => {
+
+  if (isWebcamStarted()) {
+    log.warn('[onVideoClick] webcam already started - bailing')
     return
   }
+
+  await startProcessingLoop(elements)
 
   let result = null
 
   const webcamIterator = captureWebcamGenerator()
-
-  const killProcessingLoop = () => {
-    try {
-      UI.hideCancelButton(onCancel)
-      stopWebcam()
-      hideStats()
-      saveScanMetrics('completed', result.imageDataURL, result.solution)
-    } catch (error) {
-      log.error(`[onVideoClick] ${error.message}`)
-      showErrorPanel(error.message)
-    }
-  }
 
   while (isWebcamStarted()) {
     try {
@@ -159,7 +169,6 @@ const onVideoClick = async elements => {
 
       result = await processImage(imageData, elements.videoOverlayGuidesElement)
       if (result) {
-        killProcessingLoop()
         break
       }
     } catch (error) {
@@ -169,24 +178,20 @@ const onVideoClick = async elements => {
       stashFrameMetrics()
       stats && stats.end()
     }
+
     log.info('[onVideoClick] waiting for next frame...')
     await tf.nextFrame()
+  }
+
+  if (result && isWebcamStarted()) {
+    await stopProcessingLoop(result)
   }
 
   log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
 }
 
 const onCancel = async () => {
-  try {
-    UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
-    UI.hideCancelButton(onCancel)
-    stopWebcam()
-    hideStats()
-    await saveScanMetrics('cancelled')
-  } catch (error) {
-    log.error(`[onCancel] ${error.message}`)
-    showErrorPanel(error.message)
-  }
+  await stopProcessingLoop()
 }
 
 const onSudokuClick = () =>
