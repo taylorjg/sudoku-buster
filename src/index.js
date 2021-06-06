@@ -6,7 +6,7 @@ import * as UI from './ui'
 import { imageDataToDataURL } from './image'
 import { helloModuleLoaded } from './findBoundingBox'
 import { loadModels, getCellsModel } from './models'
-import { isWebcamStarted, startWebcam, stopWebcam, captureWebcam } from './webcam'
+import { isWebcamStarted, startWebcam, stopWebcam, captureWebcamGenerator } from './webcam'
 import { scanPuzzle } from './scan'
 import { satisfiesAllConstraints, digitPredictionsToPuzzle } from './puzzle'
 import { getInitialValues, solve } from './solve'
@@ -132,47 +132,45 @@ const onVideoClick = async elements => {
     return
   }
 
-  let result = false
+  let result = null
+
+  const webcamIterator = captureWebcamGenerator()
+
+  const killProcessingLoop = () => {
+    try {
+      UI.hideCancelButton(onCancel)
+      stopWebcam()
+      hideStats()
+      saveScanMetrics('completed', result.imageDataURL, result.solution)
+    } catch (error) {
+      log.error(`[onVideoClick] ${error.message}`)
+      showErrorPanel(error.message)
+    }
+  }
 
   while (isWebcamStarted()) {
-    const disposables = []
     try {
       stats && stats.begin()
-
       performance.clearMarks()
       performance.clearMeasures()
 
-      performance.mark('overall-start')
-
-      performance.mark('captureWebcam-start')
-      const imageData = await captureWebcam()
-      performance.measure('captureWebcam', 'captureWebcam-start')
-
+      const imageData = webcamIterator.next().value
       if (!imageData) break
+
       result = await processImage(imageData, elements.videoOverlayGuidesElement)
-      if (result) break
+      if (result) {
+        killProcessingLoop()
+        break
+      }
     } catch (error) {
       log.error(`[onVideoClick] ${error.message}`)
       showErrorPanel(error)
     } finally {
-      disposables.forEach(disposable => disposable.dispose())
       stashFrameMetrics()
       stats && stats.end()
     }
     log.info('[onVideoClick] waiting for next frame...')
     await tf.nextFrame()
-  }
-
-  if (result && isWebcamStarted()) {
-    try {
-      UI.hideCancelButton(onCancel)
-      stopWebcam()
-      hideStats()
-      await saveScanMetrics('completed', result.imageDataURL, result.solution)
-    } catch (error) {
-      log.error(`[onVideoClick] ${error.message}`)
-      showErrorPanel(error.message)
-    }
   }
 
   log.info(`[onVideoClick] tf memory: ${JSON.stringify(tf.memory())}`)
