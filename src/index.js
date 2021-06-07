@@ -1,7 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
-import Stats from 'stats.js'
-import axios from 'axios'
 import * as UI from './ui'
 import { imageDataToDataURL } from './image'
 import { helloModuleLoaded } from './findBoundingBox'
@@ -10,6 +8,8 @@ import { isWebcamStarted, startWebcam, stopWebcam, captureWebcamGenerator } from
 import { scanPuzzle } from './scan'
 import { satisfiesAllConstraints, digitPredictionsToPuzzle } from './puzzle'
 import { getInitialValues, solve } from './solve'
+import { ScanMetrics } from './scanMetrics'
+import { StatsWrapper } from './statsWrapper'
 import { showErrorPanel, hideErrorPanel } from './errorPanel'
 import packagejson from '../package.json'
 
@@ -23,58 +23,9 @@ const scanPuzzleOptions = {
 }
 
 const fpsOn = searchParams.has('fps')
-let stats = undefined
 
-const showStats = () => {
-  if (fpsOn) {
-    stats = new Stats()
-    document.body.appendChild(stats.dom)
-  }
-}
-
-const hideStats = () => {
-  if (fpsOn && stats) {
-    document.body.removeChild(stats.dom)
-    stats = undefined
-  }
-}
-
-let metricsPerFrame = []
-let startTime = 0
-
-const resetScanMetrics = () => {
-  metricsPerFrame = []
-  startTime = performance.now()
-}
-
-const saveScanMetrics = async (outcome, imageDataURL, solution) => {
-  try {
-    const duration = performance.now() - startTime
-    const timestamp = new Date().getTime()
-    const frameCount = metricsPerFrame.length
-    const fps = frameCount / (duration / 1000)
-    const version = packagejson.version
-    const data = {
-      version,
-      timestamp,
-      outcome,
-      duration,
-      frameCount,
-      fps,
-      metricsPerFrame: metricsPerFrame.slice(-100),
-      imageDataURL,
-      solution
-    }
-    await axios.post('/api/scanMetrics', data)
-  } catch (error) {
-    log.error(`[saveScanMetrics] ${error.message}`)
-  }
-}
-
-const stashFrameMetrics = async () => {
-  const frameMetrics = performance.getEntriesByType('measure')
-  metricsPerFrame.push(frameMetrics)
-}
+const statsWrapper = new StatsWrapper(fpsOn, document.body)
+const scanMetrics = new ScanMetrics(packagejson.version)
 
 const processImage = async (imageData, svgElement) => {
   try {
@@ -115,11 +66,11 @@ const processImage = async (imageData, svgElement) => {
 const startProcessingLoop = async elements => {
   try {
     hideErrorPanel()
-    resetScanMetrics()
+    scanMetrics.reset()
     await startWebcam(elements.videoElement)
     UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
     UI.showCancelButton(onCancel)
-    showStats()
+    statsWrapper.show()
   } catch (error) {
     log.error(`[startProcessingLoop] ${error.message}`)
     showErrorPanel(error)
@@ -133,11 +84,11 @@ const stopProcessingLoop = async result => {
     }
     UI.hideCancelButton(onCancel)
     stopWebcam()
-    hideStats()
+    statsWrapper.hide()
     if (result) {
-      await saveScanMetrics('completed', result.imageDataURL, result.solution)
+      await scanMetrics.save('completed', result.imageDataURL, result.solution)
     } else {
-      await saveScanMetrics('cancelled')
+      await scanMetrics.save('cancelled')
     }
   } catch (error) {
     log.error(`[stopProcessingLoop] ${error.message}`)
@@ -153,15 +104,15 @@ const onVideoClick = async elements => {
 
   for await (const imageData of captureWebcamGenerator()) {
     try {
-      stats && stats.begin()
+      statsWrapper.begin()
       result = await processImage(imageData, elements.videoOverlayGuidesElement)
       if (result) break
     } catch (error) {
       log.error(`[onVideoClick] ${error.message}`)
       showErrorPanel(error)
     } finally {
-      stats && stats.end()
-      stashFrameMetrics()
+      statsWrapper.end()
+      scanMetrics.stash()
       performance.clearMarks()
       performance.clearMeasures()
     }
