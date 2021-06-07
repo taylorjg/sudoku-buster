@@ -147,40 +147,24 @@ const stopProcessingLoop = async result => {
 
 const onVideoClick = async elements => {
 
-  if (isWebcamStarted()) {
-    log.warn('[onVideoClick] webcam already started - bailing')
-    return
-  }
-
   await startProcessingLoop(elements)
 
   let result = null
 
-  const webcamIterator = captureWebcamGenerator()
-
-  while (isWebcamStarted()) {
+  for await (const imageData of captureWebcamGenerator()) {
     try {
       stats && stats.begin()
-      performance.clearMarks()
-      performance.clearMeasures()
-
-      const imageData = webcamIterator.next().value
-      if (!imageData) break
-
       result = await processImage(imageData, elements.videoOverlayGuidesElement)
-      if (result) {
-        break
-      }
+      if (result) break
     } catch (error) {
       log.error(`[onVideoClick] ${error.message}`)
       showErrorPanel(error)
     } finally {
-      stashFrameMetrics()
       stats && stats.end()
+      stashFrameMetrics()
+      performance.clearMarks()
+      performance.clearMeasures()
     }
-
-    log.info('[onVideoClick] waiting for next frame...')
-    await tf.nextFrame()
   }
 
   if (result && isWebcamStarted()) {

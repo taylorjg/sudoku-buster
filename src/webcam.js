@@ -1,3 +1,4 @@
+import * as tf from '@tensorflow/tfjs'
 import log from 'loglevel'
 
 let videoElement = null
@@ -52,7 +53,7 @@ export const captureWebcam = () => {
   }
 }
 
-export function* captureWebcamGenerator() {
+export async function* captureWebcamGenerator() {
 
   const dx = 0
   const dy = 0
@@ -61,12 +62,13 @@ export function* captureWebcamGenerator() {
   const sw = offScreenCanvas.width
   const sh = offScreenCanvas.height
 
-  for (; ;) {
+  while (videoElement) {
     performance.mark('captureWebcam-start')
     const ctx = offScreenCanvas.getContext('2d')
     ctx.drawImage(videoElement, dx, dy)
     const imageData = ctx.getImageData(sx, sy, sw, sh)
     performance.measure('captureWebcam', 'captureWebcam-start')
     yield imageData
+    await tf.nextFrame()
   }
 }
