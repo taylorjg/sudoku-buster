@@ -4,7 +4,7 @@ import * as UI from './ui'
 import { imageDataToDataURL } from './image'
 import { helloModuleLoaded } from './findBoundingBox'
 import { loadModels, getCellsModel } from './models'
-import { isWebcamStarted, startWebcam, stopWebcam, captureWebcamGenerator } from './webcam'
+import { Webcam } from './webcam'
 import { scanPuzzle } from './scan'
 import { satisfiesAllConstraints, digitPredictionsToPuzzle } from './puzzle'
 import { getInitialValues, solve } from './solve'
@@ -26,6 +26,8 @@ const fpsOn = searchParams.has('fps')
 
 const statsWrapper = new StatsWrapper(fpsOn, document.body)
 const scanMetrics = new ScanMetrics(packagejson.version)
+const webcam = new Webcam()
+
 
 const processImage = async (imageData, svgElement) => {
   try {
@@ -67,7 +69,7 @@ const startProcessingLoop = async elements => {
   try {
     hideErrorPanel()
     scanMetrics.reset()
-    await startWebcam(elements.videoElement)
+    await webcam.start(elements.videoElement)
     UI.setDisplayMode(UI.DISPLAY_MODE_VIDEO)
     UI.showCancelButton(onCancel)
     statsWrapper.show()
@@ -83,7 +85,7 @@ const stopProcessingLoop = async result => {
       UI.setDisplayMode(UI.DISPLAY_MODE_INSTRUCTIONS)
     }
     UI.hideCancelButton(onCancel)
-    stopWebcam()
+    webcam.stop()
     statsWrapper.hide()
     if (result) {
       await scanMetrics.save('completed', result.imageDataURL, result.solution)
@@ -102,7 +104,7 @@ const onVideoClick = async elements => {
 
   let result = null
 
-  for await (const imageData of captureWebcamGenerator()) {
+  for await (const imageData of webcam.frames()) {
     try {
       statsWrapper.begin()
       result = await processImage(imageData, elements.videoOverlayGuidesElement)
@@ -118,7 +120,7 @@ const onVideoClick = async elements => {
     }
   }
 
-  if (result && isWebcamStarted()) {
+  if (result && webcam.isActive) {
     await stopProcessingLoop(result)
   }
 
