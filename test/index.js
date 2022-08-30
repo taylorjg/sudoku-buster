@@ -16,7 +16,7 @@ const main = async () => {
     .slow(5000)
     .timeout(5000)
     .checkLeaks()
-    .globals(['__VUE_DEVTOOLS_TOAST__'])
+    // .globals(['__VUE_DEVTOOLS_TOAST__'])
 
   await helloModuleLoaded
 
@@ -51,7 +51,9 @@ describe('sudoku-buster tests', () => {
   })
 
   after(() => {
-    cellsModel.dispose()
+    if (cellsModel) {
+      cellsModel.dispose()
+    }
   })
 
   describe('findBoundingBox', () => {
@@ -127,8 +129,8 @@ describe('sudoku-buster tests', () => {
 
   describe('satisfiesAllConstraints', () => {
 
-    it('should succeed given an empty collection of predictions', () => {
-      expect(satisfiesAllConstraints([])).to.be.true
+    it('should fail given an empty collection of predictions', () => {
+      expect(satisfiesAllConstraints([])).to.be.false
     })
 
     it('should succeed given the result of a successful scan', async () => {
@@ -136,29 +138,47 @@ describe('sudoku-buster tests', () => {
       expect(satisfiesAllConstraints(digitPredictions)).to.be.true
     })
 
+    const minimumDigitPredictions = [
+      { digitPrediction: 2, index: 0 },
+      { digitPrediction: 8, index: 1 },
+      { digitPrediction: 3, index: 4 },
+      { digitPrediction: 4, index: 7 },
+      { digitPrediction: 5, index: 8 },
+      { digitPrediction: 5, index: 9 },
+      { digitPrediction: 4, index: 11 },
+      { digitPrediction: 6, index: 15 },
+      { digitPrediction: 2, index: 17 },
+      { digitPrediction: 1, index: 19 },
+      { digitPrediction: 5, index: 21 },
+      { digitPrediction: 4, index: 23 },
+      { digitPrediction: 9, index: 25 },
+      { digitPrediction: 2, index: 29 },
+      { digitPrediction: 8, index: 30 },
+      { digitPrediction: 3, index: 32 },
+      { digitPrediction: 4, index: 33 }
+    ]
+
+    const makeDeliberateDuplicate = (index1, index2) => {
+      const digitPredictions = R.clone(minimumDigitPredictions)
+      const findEntryAtIndex = index => digitPredictions.find(entry => entry.index === index)
+      const entry1 = findEntryAtIndex(index1)
+      const entry2 = findEntryAtIndex(index2)
+      entry2.digitPrediction = entry1.digitPrediction
+      return digitPredictions
+    }
+
     it('should fail given a row with a duplicate digit', () => {
-      const digitPredictions = [
-        { digitPrediction: 4, index: 0 },
-        { digitPrediction: 9, index: 2 },
-        { digitPrediction: 4, index: 6 }
-      ]
+      const digitPredictions = makeDeliberateDuplicate(0, 1)
       expect(satisfiesAllConstraints(digitPredictions)).to.be.false
     })
 
     it('should fail given a column with a duplicate digit', () => {
-      const digitPredictions = [
-        { digitPrediction: 7, index: 1 },
-        { digitPrediction: 7, index: 10 },
-        { digitPrediction: 5, index: 19 }
-      ]
+      const digitPredictions = makeDeliberateDuplicate(0, 9)
       expect(satisfiesAllConstraints(digitPredictions)).to.be.false
     })
 
     it('should fail given a 3x3 box with a duplicate digit', () => {
-      const digitPredictions = [
-        { digitPrediction: 3, index: 2 },
-        { digitPrediction: 3, index: 20 }
-      ]
+      const digitPredictions = makeDeliberateDuplicate(0, 11)
       expect(satisfiesAllConstraints(digitPredictions)).to.be.false
     })
   })

@@ -52,7 +52,7 @@ export const satisfiesAllConstraints = digitPredictions => {
   performance.mark('satisfiesAllConstraints-start')
   try {
     // https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Ordinary_Sudoku
-    if (digitPredictions.length < 17) return
+    if (digitPredictions.length < 17) return false
 
     return R.all(
       validateSetsOfIndices(digitPredictions),
