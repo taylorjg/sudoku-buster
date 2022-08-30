@@ -3,6 +3,7 @@ module.exports = {
     browser: true
   },
   globals: {
-    cv: 'readonly'
+    cv: 'readonly',
+    gtag: 'readonly'
   }
 }
