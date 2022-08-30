@@ -5,7 +5,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { version } = require('./package.json')
 
-const distFolder = path.join(__dirname, 'dist')
+const BUILD_FOLDER = path.join(__dirname, 'build')
 
 module.exports = {
   mode: process.env.NODE_ENV || 'development',
@@ -15,7 +15,7 @@ module.exports = {
     test: './test/index.js'
   },
   output: {
-    path: distFolder,
+    path: BUILD_FOLDER,
     filename: '[name].bundle.js'
   },
   plugins: [
@@ -31,28 +31,27 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
       template: './src/index.html',
-      filename: path.resolve(distFolder, 'index.html'),
+      filename: path.resolve(BUILD_FOLDER, 'index.html'),
       chunks: ['index'],
       version
     }),
     new HtmlWebpackPlugin({
       template: './analytics/index.html',
-      filename: path.resolve(distFolder, 'analytics.html'),
+      filename: path.resolve(BUILD_FOLDER, 'analytics.html'),
       chunks: ['analytics'],
       version
     }),
     new HtmlWebpackPlugin({
       template: './test/index.html',
-      filename: path.resolve(distFolder, 'test.html'),
+      filename: path.resolve(BUILD_FOLDER, 'test.html'),
       chunks: ['test'],
       version
     })
   ],
   devtool: 'source-map',
   devServer: {
-    contentBase: distFolder,
     proxy: {
-      '/api': 'http://localhost:3090'
-    }
+      '/api': 'http://localhost:3090',
+    },
   }
 }
