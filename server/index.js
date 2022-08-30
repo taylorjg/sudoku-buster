@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const express = require('express')
 const morgan = require('morgan')
 const { default: sslRedirect } = require('heroku-ssl-redirect')

@@ -6,8 +6,7 @@
     "eslint": "eslint .",
     "build": "webpack",
     "start": "node server",
-    "start:dev": "webpack-dev-server",
-    "heroku-postbuild": "npm run build"
+    "start:dev": "webpack-dev-server"
   },
   "author": "Jonathan Taylor",
   "license": "MIT",
@@ -16,6 +15,7 @@
     "axios": "^0.21.1",
     "chart.js": "^2.9.4",
     "dlxlib": "^2.0.0-alpha.2",
+    "dotenv": "^16.0.1",
     "express": "^4.17.1",
     "heroku-ssl-redirect": "^0.1.1",
     "loglevel": "^1.7.1",
