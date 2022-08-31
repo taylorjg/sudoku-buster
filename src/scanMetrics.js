@@ -18,23 +18,24 @@ export class ScanMetrics {
     this.metricsPerFrame.push(frameMetrics)
   }
 
-  _sendCustomAnalyticsEvent(outcome, ...parameters) {
+  _sendCustomAnalyticsEvent(outcome, parameters) {
     if (outcome === 'completed') {
-      gtag('event', 'outcome_completed', { ...parameters })
+      gtag('event', 'outcome_completed', parameters)
     }
     if (outcome === 'cancelled') {
-      gtag('event', 'outcome_cancelled', { ...parameters })
+      gtag('event', 'outcome_cancelled', parameters)
     }
   }
 
   async save(outcome, imageDataURL, solution) {
     try {
+      const version = this.version
       const duration = performance.now() - this.startTime
       const timestamp = new Date().getTime()
       const frameCount = this.metricsPerFrame.length
       const fps = frameCount / (duration / 1000)
       const data = {
-        version: this.version,
+        version,
         timestamp,
         outcome,
         duration,
@@ -47,11 +48,13 @@ export class ScanMetrics {
       await axios.post('/api/scanMetrics', data)
       this._sendCustomAnalyticsEvent(
         outcome,
-        this.version,
-        timestamp,
-        duration,
-        frameCount,
-        fps
+        {
+          version,
+          timestamp,
+          duration,
+          frameCount,
+          fps
+        }
       )
     } catch (error) {
       log.error(`[ScanMetrics#save] ${error.message}`)
