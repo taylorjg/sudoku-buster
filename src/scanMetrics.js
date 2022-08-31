@@ -18,26 +18,12 @@ export class ScanMetrics {
     this.metricsPerFrame.push(frameMetrics)
   }
 
-  _sendCustomAnalyticsEvent(outcome, imageDataURL, solution, version, timestamp, duration, frameCount, fps) {
-    const common = {
-      version,
-      timestamp,
-      outcome,
-      duration,
-      frameCount,
-      fps
-    }
+  _sendCustomAnalyticsEvent(outcome, ...parameters) {
     if (outcome === 'completed') {
-      gtag('event', 'outcome_completed', {
-        ...common,
-        imageDataURL,
-        solution
-      })
+      gtag('event', 'outcome_completed', { ...parameters })
     }
     if (outcome === 'cancelled') {
-      gtag('event', 'outcome_cancelled', {
-        ...common,
-      })
+      gtag('event', 'outcome_cancelled', { ...parameters })
     }
   }
 
@@ -61,8 +47,6 @@ export class ScanMetrics {
       await axios.post('/api/scanMetrics', data)
       this._sendCustomAnalyticsEvent(
         outcome,
-        imageDataURL,
-        solution,
         this.version,
         timestamp,
         duration,
