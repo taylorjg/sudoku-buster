@@ -1,3 +1,7 @@
+> __Note__
+>
+> I have rewritten this project using React and TypeScript - see [sudoku-buster-react](https://github.com/taylorjg/sudoku-buster-react).
+
 # Description
 
 The idea of this repo is to create a web application to scan a Sudoku puzzle
